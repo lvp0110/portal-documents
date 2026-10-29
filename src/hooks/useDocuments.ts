@@ -77,8 +77,11 @@ export function useDocuments() {
         brand: 'Knauf',
         materials: ['Гипсокартон'],
         documentType: 'Технический паспорт',
+        expiresAt: null,
+        fireHazard: null,
         brandFile: null,
         materialsFile: buildSamplePdf(),
+        documentFile: null,
       }))
     } catch (sampleError) {
       setError(errorMessage(sampleError, 'Не удалось добавить пример.'))

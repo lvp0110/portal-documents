@@ -5,9 +5,9 @@ import { EMPTY_FILTERS, type Catalogs, type DocumentFilters, type DocumentMeta }
 type FacetKey = 'brands' | 'materials' | 'documentTypes'
 
 const GROUPS: { key: FacetKey; title: string; catalog: keyof Catalogs }[] = [
+  { key: 'documentTypes', title: 'Тип документа', catalog: 'documentTypes' },
   { key: 'brands', title: 'Бренды', catalog: 'brands' },
   { key: 'materials', title: 'Материалы', catalog: 'materials' },
-  { key: 'documentTypes', title: 'Тип документа', catalog: 'documentTypes' },
 ]
 
 type FilterPanelProps = {
@@ -63,7 +63,6 @@ export function FilterPanel({ catalogs, documents, filters, onChange }: FilterPa
           </button>
         )}
       </div>
-      <p className="filters-note">В списке можно отметить несколько значений. Между списками условия складываются.</p>
       {GROUPS.map((group) => (
         <section key={group.key} className="filter-group">
           <h3>{group.title}</h3>

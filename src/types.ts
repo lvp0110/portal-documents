@@ -8,6 +8,14 @@ export type DocumentFile = {
   pageCount: number
 }
 
+export type FireHazardIndicators = {
+  g: string
+  v: string
+  rp: string
+  d: string
+  t: string
+}
+
 export type DocumentMeta = {
   id: string
   title: string
@@ -17,6 +25,8 @@ export type DocumentMeta = {
   brand: string
   materials: string[]
   documentType: string
+  expiresAt: string | null
+  fireHazard: FireHazardIndicators | null
   uploadedAt: string
   pageCount: number
   files: DocumentFile[]
@@ -40,8 +50,11 @@ export type UploadDocumentInput = {
   brand: string
   materials: string[]
   documentType: string
+  expiresAt: string | null
+  fireHazard: FireHazardIndicators | null
   brandFile: File | null
   materialsFile: File | null
+  documentFile: File | null
 }
 
 export const EMPTY_FILTERS: DocumentFilters = {

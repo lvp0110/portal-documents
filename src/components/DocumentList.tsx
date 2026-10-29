@@ -1,3 +1,4 @@
+import { formatFireHazard } from '../catalogs'
 import { formatBytes, formatDate } from '../lib/format'
 import type { DocumentMeta } from '../types'
 
@@ -71,6 +72,7 @@ export function DocumentList({
           )}
           {documents.map((document) => {
             const selected = document.id === selectedId
+            const fireHazard = formatFireHazard(document.fireHazard)
             return (
               <li key={document.id}>
                 <button
@@ -81,9 +83,13 @@ export function DocumentList({
                 >
                   <strong>{document.title}</strong>
                   <span>{[document.brand, ...document.materials].filter(Boolean).join(' · ')}</span>
-                  <span>{document.documentType}</span>
+                  <span>
+                    {document.documentType}
+                    {fireHazard ? ` · ${fireHazard}` : ''}
+                  </span>
                   <small>
                     {formatDate(document.uploadedAt)}
+                    {document.expiresAt ? ` · истекает ${formatDate(document.expiresAt)}` : ''}
                     {' · '}
                     {formatBytes(document.size)}
                     {document.pageCount > 0 ? ` · ${document.pageCount} стр.` : ''}

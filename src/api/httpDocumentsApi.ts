@@ -1,4 +1,4 @@
-import { catalogsFromDocuments, mergeOptions, readDocumentFiles, readMaterials, BASE_BRANDS, BASE_MATERIALS, BASE_DOCUMENT_TYPES } from '../catalogs'
+import { catalogsFromDocuments, mergeOptions, readDocumentFiles, readExpiresAt, readFireHazard, readMaterials, BASE_BRANDS, BASE_MATERIALS, BASE_DOCUMENT_TYPES } from '../catalogs'
 import type { Catalogs, DocumentMeta, FileRole, UploadDocumentInput } from '../types'
 import type { DocumentsApi } from './documentsApi'
 import { prepareUpload } from './prepareUpload'
@@ -29,9 +29,11 @@ export function parseDocument(value: unknown): DocumentMeta {
     fileName: asString(record, 'fileName'),
     mimeType: typeof record.mimeType === 'string' ? record.mimeType : 'application/pdf',
     size: asNumber(record, 'size'),
-    brand: asString(record, 'brand'),
+    brand: typeof record.brand === 'string' ? record.brand.trim() : '',
     materials: readMaterials(record),
     documentType: asString(record, 'documentType'),
+    expiresAt: readExpiresAt(record),
+    fireHazard: readFireHazard(record),
     uploadedAt: asString(record, 'uploadedAt'),
     pageCount: asNumber(record, 'pageCount'),
     files: readDocumentFiles(record),
@@ -95,10 +97,18 @@ export class HttpDocumentsApi implements DocumentsApi {
     form.set('brand', prepared.brand)
     for (const material of prepared.materials) form.append('material', material)
     form.set('documentType', prepared.documentType)
+    if (prepared.expiresAt) form.set('expiresAt', prepared.expiresAt)
+    if (prepared.fireHazard) {
+      form.set('fireHazardG', prepared.fireHazard.g)
+      form.set('fireHazardV', prepared.fireHazard.v)
+      form.set('fireHazardRp', prepared.fireHazard.rp)
+      form.set('fireHazardD', prepared.fireHazard.d)
+      form.set('fireHazardT', prepared.fireHazard.t)
+    }
     for (const item of prepared.files) {
-      const field = item.role === 'brand' ? 'brandFile' : 'materialsFile'
+      const field = item.role === 'brand' ? 'brandFile' : item.role === 'materials' ? 'materialsFile' : 'file'
       form.set(field, item.file, item.file.name)
-      form.set(`${item.role}PageCount`, String(item.pageCount))
+      form.set(item.role === 'document' ? 'pageCount' : `${item.role}PageCount`, String(item.pageCount))
     }
 
     const response = await fetch(`${this.baseUrl}/documents`, { method: 'POST', body: form })

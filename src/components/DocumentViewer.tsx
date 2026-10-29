@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatFireHazard } from '../catalogs'
 import { errorMessage, formatBytes, formatDate } from '../lib/format'
 import type { DocumentMeta, FileRole } from '../types'
 import { OriginalPdfView } from './OriginalPdfView'
@@ -123,6 +124,10 @@ export function DocumentViewer({
           <span className="chip" key={material}>{material}</span>
         ))}
         <span className="chip">{document.documentType}</span>
+        {document.expiresAt && <span className="chip">Истекает {formatDate(document.expiresAt)}</span>}
+        {formatFireHazard(document.fireHazard) && (
+          <span className="chip">{formatFireHazard(document.fireHazard)}</span>
+        )}
       </div>
       {files.length > 1 && activeFile && (
         <div className="file-switch" role="tablist" aria-label="Файлы документа">

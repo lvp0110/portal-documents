@@ -189,13 +189,6 @@ button { cursor: pointer; }
 
 .filters h2 { font-size: 18px; }
 
-.filters-note {
-  margin: 8px 8px 18px;
-  color: var(--sidebar-muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
 .text-button {
   border: 0;
   background: transparent;
@@ -620,6 +613,29 @@ button { cursor: pointer; }
 
 .upload-dialog input:not([type='checkbox']):focus { border-color: var(--accent); }
 
+.fire-hazard {
+  min-inline-size: 0;
+}
+
+.fire-hazard-row {
+  display: flex;
+  gap: 8px;
+}
+
+.upload-dialog .fire-hazard-row input {
+  flex: none;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  text-align: center;
+}
+
+.upload-dialog .fire-hazard-row input::placeholder {
+  color: #8a8176;
+  opacity: 1;
+}
+
 .dropzone {
   display: grid;
   justify-items: start;
@@ -663,8 +679,7 @@ button { cursor: pointer; }
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px 18px;
   }
-  .filters-head,
-  .filters-note { grid-column: 1 / -1; }
+  .filters-head { grid-column: 1 / -1; }
   .viewer-bar { flex-direction: column; }
   .viewer { padding: 16px 12px 32px; }
 }

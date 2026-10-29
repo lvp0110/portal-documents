@@ -1,4 +1,4 @@
-import { catalogsFromDocuments, readDocumentFiles, readMaterials } from '../catalogs'
+import { catalogsFromDocuments, readDocumentFiles, readExpiresAt, readFireHazard, readMaterials } from '../catalogs'
 import { deleteDocument, readAllDocuments, readFile, saveDocument } from '../lib/db'
 import type { Catalogs, DocumentMeta, UploadDocumentInput } from '../types'
 import type { DocumentsApi } from './documentsApi'
@@ -12,6 +12,8 @@ export class LocalDocumentsApi implements DocumentsApi {
       ...document,
       materials: readMaterials(document),
       files: readDocumentFiles(document),
+      expiresAt: readExpiresAt(document),
+      fireHazard: readFireHazard(document),
     }))
     return documents.sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt))
   }
@@ -32,6 +34,8 @@ export class LocalDocumentsApi implements DocumentsApi {
       brand: prepared.brand,
       materials: prepared.materials,
       documentType: prepared.documentType,
+      expiresAt: prepared.expiresAt,
+      fireHazard: prepared.fireHazard,
       uploadedAt: new Date().toISOString(),
       pageCount: files.reduce((sum, file) => sum + file.pageCount, 0),
       files,

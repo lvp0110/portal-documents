@@ -77,7 +77,10 @@ export function FilterPanel({ catalogs, documents, filters, onChange }: FilterPa
         })
 
         return (
-          <section key={group.key} className="filter-group">
+          <section
+            key={group.key}
+            className={group.key === 'documentTypes' ? 'filter-group has-divider' : 'filter-group'}
+          >
             <h3>{group.title}</h3>
             {options.length > 0 && (
               <ul>

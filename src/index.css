@@ -9,8 +9,8 @@
   --sidebar: #1c1916;
   --sidebar-ink: #f6f1ea;
   --sidebar-muted: #b7aea3;
-  --accent: #c45c26;
-  --accent-dark: #9a4316;
+  --accent: #5a8781cc;
+  --accent-dark: #3d615c;
   --good: #1d6b4f;
   --danger: #8f2d1f;
   --shadow: 0 18px 40px rgba(48, 32, 16, 0.08);
@@ -172,7 +172,11 @@ button { cursor: pointer; }
 
 .filters {
   color-scheme: dark;
-  background: var(--sidebar);
+  background-color: var(--sidebar);
+  background-image: url('/filters-bg.jpg');
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: cover;
   color: var(--sidebar-ink);
   overflow: auto;
   padding: 22px 16px 32px;
@@ -202,6 +206,11 @@ button { cursor: pointer; }
 }
 
 .filter-group { margin-top: 18px; }
+
+.filter-group.has-divider {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(246, 241, 234, 0.18);
+}
 
 .filter-group h3 {
   margin: 0 8px 8px;
@@ -234,11 +243,18 @@ button { cursor: pointer; }
 .filter-option input {
   width: 16px;
   height: 16px;
+  flex: 0 0 16px;
   margin: 0;
-  accent-color: #e07a45;
+  accent-color: #5a8781;
+}
+
+.filter-option span {
+  flex: 1;
+  min-width: 0;
 }
 
 .filter-option em {
+  flex: none;
   margin-left: auto;
   font-style: normal;
   color: var(--sidebar-muted);
@@ -276,7 +292,7 @@ button { cursor: pointer; }
 }
 
 .pane-toggle:hover {
-  border-color: #c45c26;
+  border-color: #5a8781cc;
   color: var(--accent-dark);
 }
 
@@ -307,7 +323,7 @@ button { cursor: pointer; }
   outline: none;
 }
 
-.search input:focus { border-color: #c45c26; }
+.search input:focus { border-color: #5a8781cc; }
 
 .list-count {
   margin: 0;
@@ -381,6 +397,7 @@ button { cursor: pointer; }
   min-height: 0;
   overflow: auto;
   padding: 22px 28px 48px;
+  background: #f0f0f0;
 }
 
 .viewer-empty {
@@ -418,28 +435,6 @@ button { cursor: pointer; }
   gap: 8px;
 }
 
-.file-switch {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 16px;
-}
-
-.file-switch button {
-  border: 1px solid var(--line);
-  background: white;
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.file-switch button.is-selected {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-
 .chip-row {
   display: flex;
   flex-wrap: wrap;
@@ -449,11 +444,29 @@ button { cursor: pointer; }
 
 .chip {
   padding: 5px 10px;
+  border: 1px solid transparent;
   border-radius: 999px;
   background: #efe4d4;
   color: #5c4634;
   font-size: 12px;
   font-weight: 700;
+}
+
+.chip-type {
+  background: transparent;
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.chip-brand {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.chip-material {
+  background: color-mix(in srgb, var(--accent) 50%, white);
+  color: var(--accent-dark);
 }
 
 .pdf-frame { width: 100%; }

@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type DragEvent, type FormEvent } from 'react'
 import type { Catalogs, FireHazardIndicators, UploadDocumentInput } from '../types'
 import { errorMessage, isIsoDate, isPdfFile } from '../lib/format'
-import { isCertificateType, isEngineeringAlbumType, MAX_PDF_BYTES, normalizeFireHazard } from '../catalogs'
+import { isCertificateType, isEngineeringAlbumType, materialsForBrand, MAX_PDF_BYTES, normalizeFireHazard } from '../catalogs'
 import { OptionMenu } from './OptionMenu'
 
 const EMPTY_FIRE_HAZARD: FireHazardIndicators = { g: '', v: '', rp: '', d: '', t: '' }
@@ -171,94 +171,6 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
           <p>Один PDF. Куда он сохранится, зависит от выбранных бренда, материалов и конструкций.</p>
         </header>
 
-        <div
-          className={over ? 'dropzone is-over' : 'dropzone'}
-          onDragEnter={(event) => {
-            event.preventDefault()
-            setOver(true)
-          }}
-          onDragOver={(event) => {
-            event.preventDefault()
-            setOver(true)
-          }}
-          onDragLeave={(event) => {
-            event.preventDefault()
-            if (event.currentTarget.contains(event.relatedTarget as Node)) return
-            setOver(false)
-          }}
-          onDrop={onDrop}
-        >
-          <strong>{file ? file.name : 'Перетащите PDF сюда'}</strong>
-          <span>{fileTarget(brand, materials, constructions, documentType)}</span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,application/pdf"
-            className="sr-only"
-            tabIndex={-1}
-            onChange={(event) => {
-              acceptFile(event.target.files?.[0] ?? null)
-              event.target.value = ''
-            }}
-          />
-          <div className="dropzone-actions">
-            <button type="button" className="button button-secondary" onClick={() => fileInputRef.current?.click()}>
-              Выбрать файл
-            </button>
-            {file && (
-              <button type="button" className="button button-secondary" onClick={() => setFile(null)}>
-                Убрать
-              </button>
-            )}
-          </div>
-        </div>
-
-        <label>
-          Название
-          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Если пусто, возьмём имя файла" />
-        </label>
-        <OptionMenu
-          label="Бренд"
-          placeholder="Выберите бренд"
-          searchPlaceholder="Найти бренд"
-          options={catalogs.brands}
-          selected={brand ? [brand] : []}
-          allowCustom
-          open={openMenu === 'brand'}
-          onOpenChange={(next) => setOpenMenu(next ? 'brand' : null)}
-          onChange={(next) => {
-            setBrand(next[0] ?? '')
-            setFormError(null)
-          }}
-        />
-        <OptionMenu
-          label="Материалы"
-          placeholder="Выберите материалы"
-          searchPlaceholder="Найти материал"
-          options={catalogs.materials}
-          selected={materials}
-          multiple
-          open={openMenu === 'materials'}
-          onOpenChange={(next) => setOpenMenu(next ? 'materials' : null)}
-          onChange={(next) => {
-            setMaterials(next)
-            setFormError(null)
-          }}
-        />
-        <OptionMenu
-          label="Конструкции"
-          placeholder="Выберите конструкции"
-          searchPlaceholder="Найти конструкцию"
-          options={catalogs.constructions}
-          selected={constructions}
-          multiple
-          open={openMenu === 'constructions'}
-          onOpenChange={(next) => setOpenMenu(next ? 'constructions' : null)}
-          onChange={(next) => {
-            setConstructions(next)
-            setFormError(null)
-          }}
-        />
         <OptionMenu
           label="Тип документа"
           placeholder="Выберите тип"
@@ -315,6 +227,96 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
           </div>
         )}
 
+        <div
+          className={over ? 'dropzone is-over' : 'dropzone'}
+          onDragEnter={(event) => {
+            event.preventDefault()
+            setOver(true)
+          }}
+          onDragOver={(event) => {
+            event.preventDefault()
+            setOver(true)
+          }}
+          onDragLeave={(event) => {
+            event.preventDefault()
+            if (event.currentTarget.contains(event.relatedTarget as Node)) return
+            setOver(false)
+          }}
+          onDrop={onDrop}
+        >
+          <strong>{file ? file.name : 'Перетащите PDF сюда'}</strong>
+          <span>{fileTarget(brand, materials, constructions, documentType)}</span>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,application/pdf"
+            className="sr-only"
+            tabIndex={-1}
+            onChange={(event) => {
+              acceptFile(event.target.files?.[0] ?? null)
+              event.target.value = ''
+            }}
+          />
+          <div className="dropzone-actions">
+            <button type="button" className="button button-secondary" onClick={() => fileInputRef.current?.click()}>
+              Выбрать файл
+            </button>
+            {file && (
+              <button type="button" className="button button-secondary" onClick={() => setFile(null)}>
+                Убрать
+              </button>
+            )}
+          </div>
+        </div>
+
+        <label>
+          Название
+          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Если пусто, возьмём имя файла" />
+        </label>
+        <OptionMenu
+          label="Бренд"
+          placeholder="Выберите бренд"
+          searchPlaceholder="Найти бренд"
+          options={catalogs.brands}
+          selected={brand ? [brand] : []}
+          allowCustom
+          open={openMenu === 'brand'}
+          onOpenChange={(next) => setOpenMenu(next ? 'brand' : null)}
+          onChange={(next) => {
+            const value = next[0] ?? ''
+            setBrand(value)
+            setMaterials((current) => materialsForBrand(value, current))
+            setFormError(null)
+          }}
+        />
+        <OptionMenu
+          label="Материалы"
+          placeholder="Выберите материалы"
+          searchPlaceholder="Найти материал"
+          options={materialsForBrand(brand, catalogs.materials)}
+          selected={materials}
+          multiple
+          open={openMenu === 'materials'}
+          onOpenChange={(next) => setOpenMenu(next ? 'materials' : null)}
+          onChange={(next) => {
+            setMaterials(next)
+            setFormError(null)
+          }}
+        />
+        <OptionMenu
+          label="Конструкции"
+          placeholder="Выберите конструкции"
+          searchPlaceholder="Найти конструкцию"
+          options={catalogs.constructions}
+          selected={constructions}
+          multiple
+          open={openMenu === 'constructions'}
+          onOpenChange={(next) => setOpenMenu(next ? 'constructions' : null)}
+          onChange={(next) => {
+            setConstructions(next)
+            setFormError(null)
+          }}
+        />
         {formError && <p className="form-error" role="alert">{formError}</p>}
 
         <footer>

@@ -30,10 +30,8 @@ export function DocumentViewer({
 }: DocumentViewerProps) {
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const confirmingDelete = document !== null && confirmingId === document.id
-  const [pickedRole, setPickedRole] = useState<{ id: string; role: FileRole } | null>(null)
   const files = document?.files ?? []
-  const activeFile = files.find((item) => item.role === (document && pickedRole?.id === document.id ? pickedRole.role : files[0]?.role))
-    ?? files[0]
+  const activeFile = files[0]
   const requestKey = document && activeFile ? `${document.id}:${activeFile.role}` : null
   const [opened, setOpened] = useState<{ key: string; file: Blob } | null>(null)
   const [openError, setOpenError] = useState<{ key: string; message: string } | null>(null)
@@ -120,35 +118,19 @@ export function DocumentViewer({
         </div>
       </header>
       <div className="chip-row">
-        {document.brand && <span className="chip">{document.brand}</span>}
+        <span className="chip chip-type">{document.documentType}</span>
+        {document.brand && <span className="chip chip-brand">{document.brand}</span>}
         {document.materials.map((material) => (
-          <span className="chip" key={material}>{material}</span>
+          <span className="chip chip-material" key={material}>{material}</span>
         ))}
         {document.constructions.map((construction) => (
           <span className="chip" key={construction}>{construction}</span>
         ))}
-        <span className="chip">{document.documentType}</span>
         {document.expiresAt && <span className="chip">Истекает {formatDate(document.expiresAt)}</span>}
         {formatFireHazard(document.fireHazard) && (
           <span className="chip">{formatFireHazard(document.fireHazard)}</span>
         )}
       </div>
-      {files.length > 1 && activeFile && (
-        <div className="file-switch" role="tablist" aria-label="Файлы документа">
-          {files.map((item) => (
-            <button
-              key={item.role}
-              type="button"
-              role="tab"
-              aria-selected={item.role === activeFile.role}
-              className={item.role === activeFile.role ? 'is-selected' : undefined}
-              onClick={() => setPickedRole({ id: document.id, role: item.role })}
-            >
-              {fileRoleLabel(item.role)}
-            </button>
-          ))}
-        </div>
-      )}
       {visibleError && <p className="pdf-status">{visibleError}</p>}
       {!visibleError && !file && <p className="pdf-status">Открываем оригинал…</p>}
       {file && activeFile && <OriginalPdfView key={`${document.id}:${activeFile.role}`} file={file} />}

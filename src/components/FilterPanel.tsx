@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { materialsForBrands } from '../catalogs'
 import { facetValues, hasActiveFacets, matchesDocument, type FacetKey } from '../lib/filters'
 import { EMPTY_FILTERS, type Catalogs, type DocumentFilters, type DocumentMeta } from '../types'
 
@@ -39,6 +40,8 @@ export function FilterPanel({ catalogs, documents, filters, onChange }: FilterPa
     return next
   }, [documents, filters])
 
+  const documentTypeSelected = filters.documentTypes.length > 0
+
   const toggle = (key: FacetKey, value: string) => {
     const selected = filters[key]
     const nextValues = selected.includes(value)
@@ -61,31 +64,46 @@ export function FilterPanel({ catalogs, documents, filters, onChange }: FilterPa
           </button>
         )}
       </div>
-      {GROUPS.map((group) => (
-        <section key={group.key} className="filter-group">
-          <h3>{group.title}</h3>
-          <ul>
-            {catalogs[group.catalog].map((option) => {
-              const count = counts[group.key].get(option) ?? 0
-              const checked = filters[group.key].includes(option)
-              return (
-                <li key={option}>
-                  <label className={count === 0 && !checked ? 'filter-option is-empty' : 'filter-option'}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggle(group.key, option)}
-                      data-testid={`filter-${group.key}-${option}`}
-                    />
-                    <span>{option}</span>
-                    <em>{count}</em>
-                  </label>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      ))}
+      {GROUPS.map((group) => {
+        const catalogOptions = group.key === 'materials'
+          ? materialsForBrands(filters.brands, catalogs.materials, filters.materials)
+          : catalogs[group.catalog]
+        const options = catalogOptions.filter((option) => {
+          if (group.key === 'documentTypes') return true
+          const checked = filters[group.key].includes(option)
+          if (checked) return true
+          if (!documentTypeSelected) return false
+          return (counts[group.key].get(option) ?? 0) > 0
+        })
+
+        return (
+          <section key={group.key} className="filter-group">
+            <h3>{group.title}</h3>
+            {options.length > 0 && (
+              <ul>
+                {options.map((option) => {
+                  const count = counts[group.key].get(option) ?? 0
+                  const checked = filters[group.key].includes(option)
+                  return (
+                    <li key={option}>
+                      <label className={count === 0 && group.key !== 'documentTypes' ? 'filter-option is-empty' : 'filter-option'}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggle(group.key, option)}
+                          data-testid={`filter-${group.key}-${option}`}
+                        />
+                        <span>{option}</span>
+                        <em>{count}</em>
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
+        )
+      })}
     </aside>
   )
 }

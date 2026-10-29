@@ -132,7 +132,6 @@ export function DocumentList({
                   aria-current={selected ? 'true' : undefined}
                 >
                   <strong>{document.title}</strong>
-                  <span>{[document.brand, ...document.materials, ...document.constructions].filter(Boolean).join(' · ')}</span>
                   <span>
                     {document.documentType}
                     {fireHazard ? ` · ${fireHazard}` : ''}

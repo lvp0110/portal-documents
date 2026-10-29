@@ -1,4 +1,4 @@
-import { catalogsFromDocuments, mergeOptions, readConstructions, readDocumentFiles, readExpiresAt, readFireHazard, readMaterials, BASE_BRANDS, BASE_CONSTRUCTIONS, BASE_MATERIALS, BASE_DOCUMENT_TYPES } from '../catalogs'
+import { catalogsFromDocuments, mergeOptions, readConstructions, readDocumentFiles, readExpiresAt, readFireHazard, readMaterials, BASE_BRANDS, BASE_CONSTRUCTIONS, baseMaterialNames, BASE_DOCUMENT_TYPES } from '../catalogs'
 import type { Catalogs, DocumentMeta, FileRole, UploadDocumentInput } from '../types'
 import type { DocumentsApi } from './documentsApi'
 import { prepareUpload } from './prepareUpload'
@@ -81,7 +81,7 @@ export class HttpDocumentsApi implements DocumentsApi {
           Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
         return {
           brands: mergeOptions(BASE_BRANDS, strings(payload.brands)),
-          materials: mergeOptions(BASE_MATERIALS, strings(payload.materials)),
+          materials: mergeOptions(baseMaterialNames(), strings(payload.materials)),
           constructions: mergeOptions(BASE_CONSTRUCTIONS, strings(payload.constructions)),
           documentTypes: mergeOptions(BASE_DOCUMENT_TYPES, strings(payload.documentTypes)),
         }

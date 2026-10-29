@@ -1,5 +1,9 @@
+import { BASE_MATERIALS } from './baseMaterials'
 import { isIsoDate } from './lib/format'
 import type { Catalogs, DocumentFile, DocumentMeta, FireHazardIndicators } from './types'
+
+export type { BaseMaterial } from './baseMaterials'
+export { BASE_MATERIALS } from './baseMaterials'
 
 export const CERTIFICATE_DOCUMENT_TYPE = 'Сертификат'
 export const ENGINEERING_ALBUM_DOCUMENT_TYPE = 'Альбомы инжененрных решений'
@@ -30,17 +34,50 @@ export const BASE_BRANDS = [
   'Флексакустик (Flexakustik)',
   'Heradesign',
   'CARA',
+  'CUBE',
   'Sonacoustic',
+  'Decor Acoustic',
 ]
 
-export const BASE_MATERIALS = [
-  'Гипсокартон',
-  'Штукатурка',
-  'Краска',
-  'Утеплитель',
-  'Плиточный клей',
-  'Гидроизоляция',
-]
+for (const item of BASE_MATERIALS) {
+  if (item.brand && !BASE_BRANDS.includes(item.brand)) {
+    throw new Error(`Материал «${item.name}» связан с неизвестным брендом «${item.brand}».`)
+  }
+}
+
+const materialBrandByName = new Map(BASE_MATERIALS.map((item) => [item.name, item.brand]))
+
+export function baseMaterialNames(): string[] {
+  return BASE_MATERIALS.map((item) => item.name)
+}
+
+export function materialBrand(name: string): string | null {
+  return materialBrandByName.get(name) ?? null
+}
+
+export function materialsForBrand(brand: string, names: readonly string[]): string[] {
+  const selected = brand.trim()
+  return names.filter((name) => {
+    const linked = materialBrand(name)
+    if (!linked) return true
+    return linked === selected
+  })
+}
+
+export function materialsForBrands(
+  brands: readonly string[],
+  names: readonly string[],
+  pinned: readonly string[] = [],
+): string[] {
+  const selected = new Set(brands.map((item) => item.trim()).filter(Boolean))
+  if (selected.size === 0) return [...names]
+  const keep = new Set(pinned)
+  return names.filter((name) => {
+    if (keep.has(name)) return true
+    const linked = materialBrand(name)
+    return !linked || selected.has(linked)
+  })
+}
 
 export const BASE_CONSTRUCTIONS = [
   'Конструкция 1',
@@ -203,7 +240,7 @@ export function mergeOptions(defaults: string[], values: string[]): string[] {
 export function catalogsFromDocuments(documents: DocumentMeta[]): Catalogs {
   return {
     brands: mergeOptions(BASE_BRANDS, documents.map((document) => document.brand)),
-    materials: mergeOptions(BASE_MATERIALS, documents.flatMap((document) => document.materials)),
+    materials: mergeOptions(baseMaterialNames(), documents.flatMap((document) => document.materials)),
     constructions: mergeOptions(
       BASE_CONSTRUCTIONS,
       documents.flatMap((document) => document.constructions ?? []),

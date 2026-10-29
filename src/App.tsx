@@ -6,9 +6,32 @@ import { FilterPanel } from './components/FilterPanel'
 import { UploadDialog } from './components/UploadDialog'
 import { useDocuments } from './hooks/useDocuments'
 
+const LIST_COLLAPSED_KEY = 'documents-portal.list-collapsed'
+
+function readListCollapsed() {
+  try {
+    return localStorage.getItem(LIST_COLLAPSED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 export default function App() {
   const library = useDocuments()
   const [uploadOpen, setUploadOpen] = useState(false)
+  const [listCollapsed, setListCollapsed] = useState(readListCollapsed)
+
+  function toggleListCollapsed() {
+    setListCollapsed((current) => {
+      const next = !current
+      try {
+        localStorage.setItem(LIST_COLLAPSED_KEY, next ? '1' : '0')
+      } catch {
+        // Preference is optional when storage is unavailable.
+      }
+      return next
+    })
+  }
 
   return (
     <div className="app">
@@ -19,7 +42,7 @@ export default function App() {
           <button type="button" onClick={library.dismissError}>Закрыть</button>
         </div>
       )}
-      <div className="workspace">
+      <div className={listCollapsed ? 'workspace is-list-collapsed' : 'workspace'}>
         <FilterPanel
           catalogs={library.catalogs}
           documents={library.documents}
@@ -33,6 +56,8 @@ export default function App() {
           query={library.filters.query}
           loading={library.loading}
           sampleBusy={library.sampleBusy}
+          collapsed={listCollapsed}
+          onToggleCollapsed={toggleListCollapsed}
           onQueryChange={(query) => library.setFilters({ ...library.filters, query })}
           onSelect={library.select}
           onUpload={() => setUploadOpen(true)}

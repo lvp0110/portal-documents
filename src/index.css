@@ -166,6 +166,10 @@ button { cursor: pointer; }
   grid-template-columns: 280px 340px minmax(0, 1fr);
 }
 
+.workspace.is-list-collapsed {
+  grid-template-columns: 280px 48px minmax(0, 1fr);
+}
+
 .filters {
   color-scheme: dark;
   background: var(--sidebar);
@@ -249,6 +253,33 @@ button { cursor: pointer; }
   overflow: auto;
 }
 
+.list-pane.is-collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  overflow: hidden;
+}
+
+.pane-toggle {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: var(--ink);
+  flex: none;
+}
+
+.pane-toggle:hover {
+  border-color: #c45c26;
+  color: var(--accent-dark);
+}
+
 .list-toolbar {
   position: sticky;
   top: 0;
@@ -258,6 +289,13 @@ button { cursor: pointer; }
   padding: 16px;
   background: rgba(243, 238, 230, 0.94);
   backdrop-filter: blur(8px);
+}
+
+.list-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .search input {
@@ -673,6 +711,11 @@ button { cursor: pointer; }
   body { overflow: auto; }
   .app { height: auto; min-height: 100%; }
   .workspace { display: block; }
+  .list-pane.is-collapsed {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 10px 12px;
+  }
   .filters, .list-pane, .viewer { overflow: visible; }
   .filters {
     display: grid;

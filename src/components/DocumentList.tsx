@@ -9,10 +9,27 @@ type DocumentListProps = {
   query: string
   loading: boolean
   sampleBusy: boolean
+  collapsed: boolean
+  onToggleCollapsed: () => void
   onQueryChange: (value: string) => void
   onSelect: (id: string) => void
   onUpload: () => void
   onAddSample: () => void
+}
+
+function CollapseIcon({ direction }: { direction: 'left' | 'right' }) {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path
+        d={direction === 'left' ? 'M10 3.5 5.5 8 10 12.5' : 'M6 3.5 10.5 8 6 12.5'}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
 }
 
 export function DocumentList({
@@ -22,6 +39,8 @@ export function DocumentList({
   query,
   loading,
   sampleBusy,
+  collapsed,
+  onToggleCollapsed,
   onQueryChange,
   onSelect,
   onUpload,
@@ -29,24 +48,55 @@ export function DocumentList({
 }: DocumentListProps) {
   const libraryEmpty = !loading && totalCount === 0
 
-  return (
-    <section className="list-pane" aria-label="Список документов">
-      <div className="list-toolbar">
-        <label className="search">
-          <span className="sr-only">Поиск по названию</span>
-          <input
-            type="search"
-            value={query}
-            placeholder="Поиск по названию"
-            onChange={(event) => onQueryChange(event.target.value)}
-          />
-        </label>
-        <p className="list-count">
-          {loading ? 'Загрузка…' : `${documents.length} из ${totalCount}`}
-        </p>
-      </div>
+  const toggleLabel = collapsed ? 'Показать список' : 'Свернуть список'
 
-      {libraryEmpty ? (
+  return (
+    <section
+      className={collapsed ? 'list-pane is-collapsed' : 'list-pane'}
+      aria-label="Список документов"
+    >
+      {collapsed ? (
+        <button
+          type="button"
+          className="pane-toggle"
+          aria-expanded={false}
+          title={toggleLabel}
+          onClick={onToggleCollapsed}
+        >
+          <CollapseIcon direction="right" />
+          <span className="sr-only">{toggleLabel}</span>
+        </button>
+      ) : (
+        <div className="list-toolbar">
+          <div className="list-meta">
+            <p className="list-count">
+              {loading ? 'Загрузка…' : `${documents.length} из ${totalCount}`}
+            </p>
+            <button
+              type="button"
+              className="pane-toggle"
+              aria-expanded
+              aria-controls="document-list"
+              title={toggleLabel}
+              onClick={onToggleCollapsed}
+            >
+              <CollapseIcon direction="left" />
+              <span className="sr-only">{toggleLabel}</span>
+            </button>
+          </div>
+          <label className="search">
+            <span className="sr-only">Поиск по названию</span>
+            <input
+              type="search"
+              value={query}
+              placeholder="Поиск по названию"
+              onChange={(event) => onQueryChange(event.target.value)}
+            />
+          </label>
+        </div>
+      )}
+
+      {!collapsed && (libraryEmpty ? (
         <div className="empty-state">
           <h2>Пока нет документов</h2>
           <p>Перетащите PDF в форму. Файл сохранится для выбранного бренда, материалов или для обоих.</p>
@@ -66,7 +116,7 @@ export function DocumentList({
           </div>
         </div>
       ) : (
-        <ul className="doc-list">
+        <ul className="doc-list" id="document-list">
           {documents.length === 0 && !loading && (
             <li className="empty-inline">Ничего не найдено. Измените фильтры или поиск.</li>
           )}
@@ -100,7 +150,7 @@ export function DocumentList({
             )
           })}
         </ul>
-      )}
+      ))}
     </section>
   )
 }

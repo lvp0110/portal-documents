@@ -99,7 +99,7 @@ export function DocumentList({
       {!collapsed && (libraryEmpty ? (
         <div className="empty-state">
           <h2>Пока нет документов</h2>
-          <p>Перетащите PDF в форму. Файл сохранится для выбранного бренда, материалов или для обоих.</p>
+          <p>Перетащите PDF в форму. Файл сохранится для выбранного бренда, материалов или конструкций.</p>
           <div className="empty-actions">
             <button type="button" className="button button-primary" onClick={onUpload}>
               Загрузить PDF
@@ -132,7 +132,7 @@ export function DocumentList({
                   aria-current={selected ? 'true' : undefined}
                 >
                   <strong>{document.title}</strong>
-                  <span>{[document.brand, ...document.materials].filter(Boolean).join(' · ')}</span>
+                  <span>{[document.brand, ...document.materials, ...document.constructions].filter(Boolean).join(' · ')}</span>
                   <span>
                     {document.documentType}
                     {fireHazard ? ` · ${fireHazard}` : ''}

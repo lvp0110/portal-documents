@@ -7,6 +7,7 @@ import { OriginalPdfView } from './OriginalPdfView'
 function fileRoleLabel(role: FileRole): string {
   if (role === 'brand') return 'Файл бренда'
   if (role === 'materials') return 'Файл материалов'
+  if (role === 'constructions') return 'Файл конструкций'
   return 'Оригинал'
 }
 
@@ -122,6 +123,9 @@ export function DocumentViewer({
         {document.brand && <span className="chip">{document.brand}</span>}
         {document.materials.map((material) => (
           <span className="chip" key={material}>{material}</span>
+        ))}
+        {document.constructions.map((construction) => (
+          <span className="chip" key={construction}>{construction}</span>
         ))}
         <span className="chip">{document.documentType}</span>
         {document.expiresAt && <span className="chip">Истекает {formatDate(document.expiresAt)}</span>}

@@ -42,6 +42,14 @@ export const BASE_MATERIALS = [
   'Гидроизоляция',
 ]
 
+export const BASE_CONSTRUCTIONS = [
+  'Конструкция 1',
+  'Конструкция 2',
+  'Конструкция 3',
+  'Конструкция 4',
+  'Конструкция 5',
+]
+
 export const BASE_DOCUMENT_TYPES = [
   ENGINEERING_ALBUM_DOCUMENT_TYPE,
   'Технический лист',
@@ -70,7 +78,7 @@ export function readDocumentFiles(value: unknown): DocumentFile[] {
       if (!item || typeof item !== 'object') continue
       const file = item as Record<string, unknown>
       const role = file.role
-      if (role !== 'brand' && role !== 'materials' && role !== 'document') continue
+      if (role !== 'brand' && role !== 'materials' && role !== 'constructions' && role !== 'document') continue
       if (typeof file.fileName !== 'string' || !file.fileName.trim()) continue
       parsed.push({
         role,
@@ -151,6 +159,16 @@ export function readExpiresAt(value: unknown): string | null {
   return match[1]
 }
 
+function uniqueStrings(source: unknown[]): string[] {
+  const unique: string[] = []
+  for (const item of source) {
+    if (typeof item !== 'string') continue
+    const trimmed = item.trim()
+    if (trimmed && !unique.includes(trimmed)) unique.push(trimmed)
+  }
+  return unique
+}
+
 export function readMaterials(value: unknown): string[] {
   if (!value || typeof value !== 'object') return []
   const record = value as { materials?: unknown; material?: unknown }
@@ -159,13 +177,18 @@ export function readMaterials(value: unknown): string[] {
     : typeof record.material === 'string'
       ? [record.material]
       : []
-  const unique: string[] = []
-  for (const item of source) {
-    if (typeof item !== 'string') continue
-    const trimmed = item.trim()
-    if (trimmed && !unique.includes(trimmed)) unique.push(trimmed)
-  }
-  return unique
+  return uniqueStrings(source)
+}
+
+export function readConstructions(value: unknown): string[] {
+  if (!value || typeof value !== 'object') return []
+  const record = value as { constructions?: unknown; construction?: unknown }
+  const source = Array.isArray(record.constructions)
+    ? record.constructions
+    : typeof record.construction === 'string'
+      ? [record.construction]
+      : []
+  return uniqueStrings(source)
 }
 
 export function mergeOptions(defaults: string[], values: string[]): string[] {
@@ -181,6 +204,10 @@ export function catalogsFromDocuments(documents: DocumentMeta[]): Catalogs {
   return {
     brands: mergeOptions(BASE_BRANDS, documents.map((document) => document.brand)),
     materials: mergeOptions(BASE_MATERIALS, documents.flatMap((document) => document.materials)),
+    constructions: mergeOptions(
+      BASE_CONSTRUCTIONS,
+      documents.flatMap((document) => document.constructions ?? []),
+    ),
     documentTypes: mergeOptions(
       BASE_DOCUMENT_TYPES,
       documents.map((document) => document.documentType),

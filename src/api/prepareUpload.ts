@@ -12,6 +12,7 @@ export type PreparedUpload = {
   title: string
   brand: string
   materials: string[]
+  constructions: string[]
   documentType: string
   expiresAt: string | null
   fireHazard: FireHazardIndicators | null
@@ -31,6 +32,7 @@ async function prepareFile(file: File, role: FileRole, readPageCount: (data: Arr
 export async function prepareUpload(input: UploadDocumentInput): Promise<PreparedUpload> {
   const brand = input.brand.trim()
   const materials = [...new Set(input.materials.map((item) => item.trim()).filter(Boolean))]
+  const constructions = [...new Set(input.constructions.map((item) => item.trim()).filter(Boolean))]
   const documentType = input.documentType.trim()
   if (!documentType) throw new Error('Укажите тип документа.')
   const certificate = isCertificateType(documentType)
@@ -38,30 +40,36 @@ export async function prepareUpload(input: UploadDocumentInput): Promise<Prepare
   const fireHazard = certificate ? normalizeFireHazard(input.fireHazard) : null
   if (certificate && !expiresAt) throw new Error('Укажите срок действия.')
   if (expiresAt && !isIsoDate(expiresAt)) throw new Error('Укажите корректный срок действия.')
-  const withoutBrandAndMaterials = isEngineeringAlbumType(documentType) && !brand && materials.length === 0
-  if (!withoutBrandAndMaterials && !brand && materials.length === 0) {
-    throw new Error('Выберите бренд или материалы.')
+  const withoutTargets = isEngineeringAlbumType(documentType) && !brand && materials.length === 0 && constructions.length === 0
+  if (!withoutTargets && !brand && materials.length === 0 && constructions.length === 0) {
+    throw new Error('Выберите бренд, материалы или конструкции.')
   }
-  if (withoutBrandAndMaterials) {
+  if (withoutTargets) {
     if (!input.documentFile) throw new Error('Добавьте PDF.')
-  } else if (!input.brandFile && !input.materialsFile) {
+  } else if (!input.brandFile && !input.materialsFile && !input.constructionsFile) {
     throw new Error('Добавьте PDF.')
-  } else if ((brand && !input.brandFile) || (materials.length > 0 && !input.materialsFile)) {
+  } else if (
+    (brand && !input.brandFile) ||
+    (materials.length > 0 && !input.materialsFile) ||
+    (constructions.length > 0 && !input.constructionsFile)
+  ) {
     throw new Error('Добавьте PDF.')
   }
 
   const { readPdfPageCount } = await import('../lib/pdfjs')
   const files: PreparedFile[] = []
-  if (withoutBrandAndMaterials && input.documentFile) {
+  if (withoutTargets && input.documentFile) {
     files.push(await prepareFile(input.documentFile, 'document', readPdfPageCount))
   }
   if (input.brandFile) files.push(await prepareFile(input.brandFile, 'brand', readPdfPageCount))
   if (input.materialsFile) files.push(await prepareFile(input.materialsFile, 'materials', readPdfPageCount))
+  if (input.constructionsFile) files.push(await prepareFile(input.constructionsFile, 'constructions', readPdfPageCount))
 
   return {
     title: input.title.trim() || files[0].file.name.replace(/\.pdf$/i, ''),
     brand,
     materials,
+    constructions,
     documentType,
     expiresAt: expiresAt || null,
     fireHazard,

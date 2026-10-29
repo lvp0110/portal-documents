@@ -76,11 +76,13 @@ export function useDocuments() {
         title: 'Knauf Moisture Board',
         brand: 'Knauf',
         materials: ['Гипсокартон'],
+        constructions: [],
         documentType: 'Технический паспорт',
         expiresAt: null,
         fireHazard: null,
         brandFile: null,
         materialsFile: buildSamplePdf(),
+        constructionsFile: null,
         documentFile: null,
       }))
     } catch (sampleError) {

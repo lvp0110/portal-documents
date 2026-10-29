@@ -1,4 +1,4 @@
-import { catalogsFromDocuments, readDocumentFiles, readExpiresAt, readFireHazard, readMaterials } from '../catalogs'
+import { catalogsFromDocuments, readConstructions, readDocumentFiles, readExpiresAt, readFireHazard, readMaterials } from '../catalogs'
 import { deleteDocument, readAllDocuments, readFile, saveDocument } from '../lib/db'
 import type { Catalogs, DocumentMeta, UploadDocumentInput } from '../types'
 import type { DocumentsApi } from './documentsApi'
@@ -11,6 +11,7 @@ export class LocalDocumentsApi implements DocumentsApi {
     const documents = (await readAllDocuments()).map((document) => ({
       ...document,
       materials: readMaterials(document),
+      constructions: readConstructions(document),
       files: readDocumentFiles(document),
       expiresAt: readExpiresAt(document),
       fireHazard: readFireHazard(document),
@@ -33,6 +34,7 @@ export class LocalDocumentsApi implements DocumentsApi {
       size: files.reduce((sum, file) => sum + file.size, 0),
       brand: prepared.brand,
       materials: prepared.materials,
+      constructions: prepared.constructions,
       documentType: prepared.documentType,
       expiresAt: prepared.expiresAt,
       fireHazard: prepared.fireHazard,

@@ -14,16 +14,20 @@ const FIRE_HAZARD_FIELDS = [
   { key: 't', placeholder: 'Т' },
 ] as const satisfies ReadonlyArray<{ key: keyof FireHazardIndicators; placeholder: string }>
 
-type OpenMenu = 'brand' | 'materials' | 'type' | null
+type OpenMenu = 'brand' | 'materials' | 'constructions' | 'type' | null
 
-function fileTarget(brand: string, materials: string[], documentType: string): string {
-  const hasBrand = Boolean(brand.trim())
-  const hasMaterials = materials.length > 0
-  if (hasBrand && hasMaterials) return 'Файл добавится к бренду и к материалам.'
-  if (hasBrand) return 'Файл добавится к бренду.'
-  if (hasMaterials) return 'Файл добавится к материалам.'
-  if (isEngineeringAlbumType(documentType)) return 'Файл сохранится без бренда и материалов.'
-  return 'Выберите бренд, материалы или оба — файл добавится к выбранному.'
+function fileTarget(brand: string, materials: string[], constructions: string[], documentType: string): string {
+  const parts: string[] = []
+  if (brand.trim()) parts.push('бренду')
+  if (materials.length > 0) parts.push('материалам')
+  if (constructions.length > 0) parts.push('конструкциям')
+  if (parts.length === 0) {
+    if (isEngineeringAlbumType(documentType)) return 'Файл сохранится без бренда, материалов и конструкций.'
+    return 'Выберите бренд, материалы или конструкции — файл добавится к выбранному.'
+  }
+  if (parts.length === 1) return `Файл добавится к ${parts[0]}.`
+  const last = parts[parts.length - 1]
+  return `Файл добавится к ${parts.slice(0, -1).join(', к ')} и к ${last}.`
 }
 
 type UploadDialogProps = {
@@ -42,6 +46,7 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
   const [title, setTitle] = useState('')
   const [brand, setBrand] = useState('')
   const [materials, setMaterials] = useState<string[]>([])
+  const [constructions, setConstructions] = useState<string[]>([])
   const [documentType, setDocumentType] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
   const [fireHazard, setFireHazard] = useState<FireHazardIndicators>(EMPTY_FIRE_HAZARD)
@@ -58,6 +63,7 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
       setTitle('')
       setBrand('')
       setMaterials([])
+      setConstructions([])
       setDocumentType('')
       setExpiresAt('')
       setFireHazard(EMPTY_FIRE_HAZARD)
@@ -103,6 +109,7 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
     event.preventDefault()
     const hasBrand = Boolean(brand.trim())
     const hasMaterials = materials.length > 0
+    const hasConstructions = constructions.length > 0
     if (!file) {
       setFormError('Добавьте PDF.')
       return
@@ -111,9 +118,9 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
       setFormError('Укажите тип документа.')
       return
     }
-    const withoutBrandAndMaterials = isEngineeringAlbumType(documentType) && !hasBrand && !hasMaterials
-    if (!hasBrand && !hasMaterials && !withoutBrandAndMaterials) {
-      setFormError('Выберите бренд или материалы.')
+    const withoutTargets = isEngineeringAlbumType(documentType) && !hasBrand && !hasMaterials && !hasConstructions
+    if (!hasBrand && !hasMaterials && !hasConstructions && !withoutTargets) {
+      setFormError('Выберите бренд, материалы или конструкции.')
       return
     }
     const certificate = isCertificateType(documentType)
@@ -133,12 +140,14 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
         title,
         brand,
         materials,
+        constructions,
         documentType,
         expiresAt: expiresAtValue || null,
         fireHazard: fireHazardValue,
         brandFile: hasBrand ? file : null,
         materialsFile: hasMaterials ? file : null,
-        documentFile: withoutBrandAndMaterials ? file : null,
+        constructionsFile: hasConstructions ? file : null,
+        documentFile: withoutTargets ? file : null,
       })
     } catch (error) {
       setFormError(errorMessage(error, 'Не удалось сохранить документ.'))
@@ -159,7 +168,7 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
       <form onSubmit={(event) => void submit(event)}>
         <header>
           <h2 id={titleId}>Новый документ</h2>
-          <p>Один PDF. Куда он сохранится, зависит от выбранных бренда и материалов.</p>
+          <p>Один PDF. Куда он сохранится, зависит от выбранных бренда, материалов и конструкций.</p>
         </header>
 
         <div
@@ -180,7 +189,7 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
           onDrop={onDrop}
         >
           <strong>{file ? file.name : 'Перетащите PDF сюда'}</strong>
-          <span>{fileTarget(brand, materials, documentType)}</span>
+          <span>{fileTarget(brand, materials, constructions, documentType)}</span>
           <input
             ref={fileInputRef}
             type="file"
@@ -233,6 +242,20 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
           onOpenChange={(next) => setOpenMenu(next ? 'materials' : null)}
           onChange={(next) => {
             setMaterials(next)
+            setFormError(null)
+          }}
+        />
+        <OptionMenu
+          label="Конструкции"
+          placeholder="Выберите конструкции"
+          searchPlaceholder="Найти конструкцию"
+          options={catalogs.constructions}
+          selected={constructions}
+          multiple
+          open={openMenu === 'constructions'}
+          onOpenChange={(next) => setOpenMenu(next ? 'constructions' : null)}
+          onChange={(next) => {
+            setConstructions(next)
             setFormError(null)
           }}
         />

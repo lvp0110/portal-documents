@@ -1,4 +1,4 @@
-export type FileRole = 'brand' | 'materials' | 'document'
+export type FileRole = 'brand' | 'materials' | 'constructions' | 'document'
 
 export type DocumentFile = {
   role: FileRole
@@ -24,6 +24,7 @@ export type DocumentMeta = {
   size: number
   brand: string
   materials: string[]
+  constructions: string[]
   documentType: string
   expiresAt: string | null
   fireHazard: FireHazardIndicators | null
@@ -35,6 +36,7 @@ export type DocumentMeta = {
 export type DocumentFilters = {
   brands: string[]
   materials: string[]
+  constructions: string[]
   documentTypes: string[]
   query: string
 }
@@ -42,6 +44,7 @@ export type DocumentFilters = {
 export type Catalogs = {
   brands: string[]
   materials: string[]
+  constructions: string[]
   documentTypes: string[]
 }
 
@@ -49,17 +52,20 @@ export type UploadDocumentInput = {
   title: string
   brand: string
   materials: string[]
+  constructions: string[]
   documentType: string
   expiresAt: string | null
   fireHazard: FireHazardIndicators | null
   brandFile: File | null
   materialsFile: File | null
+  constructionsFile: File | null
   documentFile: File | null
 }
 
 export const EMPTY_FILTERS: DocumentFilters = {
   brands: [],
   materials: [],
+  constructions: [],
   documentTypes: [],
   query: '',
 }

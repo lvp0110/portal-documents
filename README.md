@@ -33,9 +33,9 @@ VITE_DOCUMENTS_API_URL=http://localhost:8080
 Перезапустите `npm run dev`. На экран выводится исходный PDF.
 
 - `GET /documents` — массив документов
-- `GET /documents/:id/file` — исходный файл. Для новых документов добавьте `?role=brand` или `?role=materials`
-- `POST /documents` — `multipart/form-data`: `title`, `brand`, `material` (можно несколько раз), `documentType`, `brandFile`, `materialsFile`, `brandPageCount`, `materialsPageCount`. Нужен хотя бы один файл
+- `GET /documents/:id/file` — исходный файл. Для новых документов добавьте `?role=brand`, `?role=materials` или `?role=constructions`
+- `POST /documents` — `multipart/form-data`: `title`, `brand`, `material` (можно несколько раз), `construction` (можно несколько раз), `documentType`, `brandFile`, `materialsFile`, `constructionsFile`, `brandPageCount`, `materialsPageCount`, `constructionsPageCount`. Нужен хотя бы один файл
 - `DELETE /documents/:id`
-- `GET /catalogs` — необязательно: `{ brands, materials, documentTypes }`
+- `GET /catalogs` — необязательно: `{ brands, materials, constructions, documentTypes }`
 
-Поля документа: `id`, `title`, `fileName`, `mimeType`, `size`, `brand`, `materials`, `documentType`, `uploadedAt`, `pageCount`, `files`. Старые записи с одним полем `material` и одним файлом тоже читаются.
+Поля документа: `id`, `title`, `fileName`, `mimeType`, `size`, `brand`, `materials`, `constructions`, `documentType`, `uploadedAt`, `pageCount`, `files`. Старые записи с одним полем `material` и одним файлом тоже читаются.

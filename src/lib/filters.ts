@@ -1,9 +1,10 @@
 import type { DocumentFilters, DocumentMeta } from '../types'
 
-type FacetKey = 'brands' | 'materials' | 'documentTypes'
+export type FacetKey = 'brands' | 'materials' | 'constructions' | 'documentTypes'
 
-function facetValues(document: DocumentMeta, key: FacetKey): string[] {
+export function facetValues(document: DocumentMeta, key: FacetKey): string[] {
   if (key === 'materials') return document.materials
+  if (key === 'constructions') return document.constructions ?? []
   if (key === 'brands') return [document.brand]
   return [document.documentType]
 }
@@ -19,7 +20,7 @@ export function matchesDocument(
     if (!haystack.includes(query)) return false
   }
 
-  for (const key of ['brands', 'materials', 'documentTypes'] as const) {
+  for (const key of ['brands', 'materials', 'constructions', 'documentTypes'] as const) {
     if (key === ignore) continue
     const selected = filters[key]
     if (selected.length === 0) continue
@@ -34,6 +35,7 @@ export function hasActiveFacets(filters: DocumentFilters): boolean {
   return (
     filters.brands.length > 0 ||
     filters.materials.length > 0 ||
+    filters.constructions.length > 0 ||
     filters.documentTypes.length > 0
   )
 }

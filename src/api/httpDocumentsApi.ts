@@ -1,4 +1,4 @@
-import { catalogsFromDocuments, mergeOptions, readDocumentFiles, readExpiresAt, readFireHazard, readMaterials, BASE_BRANDS, BASE_MATERIALS, BASE_DOCUMENT_TYPES } from '../catalogs'
+import { catalogsFromDocuments, mergeOptions, readConstructions, readDocumentFiles, readExpiresAt, readFireHazard, readMaterials, BASE_BRANDS, BASE_CONSTRUCTIONS, BASE_MATERIALS, BASE_DOCUMENT_TYPES } from '../catalogs'
 import type { Catalogs, DocumentMeta, FileRole, UploadDocumentInput } from '../types'
 import type { DocumentsApi } from './documentsApi'
 import { prepareUpload } from './prepareUpload'
@@ -31,6 +31,7 @@ export function parseDocument(value: unknown): DocumentMeta {
     size: asNumber(record, 'size'),
     brand: typeof record.brand === 'string' ? record.brand.trim() : '',
     materials: readMaterials(record),
+    constructions: readConstructions(record),
     documentType: asString(record, 'documentType'),
     expiresAt: readExpiresAt(record),
     fireHazard: readFireHazard(record),
@@ -81,6 +82,7 @@ export class HttpDocumentsApi implements DocumentsApi {
         return {
           brands: mergeOptions(BASE_BRANDS, strings(payload.brands)),
           materials: mergeOptions(BASE_MATERIALS, strings(payload.materials)),
+          constructions: mergeOptions(BASE_CONSTRUCTIONS, strings(payload.constructions)),
           documentTypes: mergeOptions(BASE_DOCUMENT_TYPES, strings(payload.documentTypes)),
         }
       }
@@ -96,6 +98,7 @@ export class HttpDocumentsApi implements DocumentsApi {
     form.set('title', prepared.title)
     form.set('brand', prepared.brand)
     for (const material of prepared.materials) form.append('material', material)
+    for (const construction of prepared.constructions) form.append('construction', construction)
     form.set('documentType', prepared.documentType)
     if (prepared.expiresAt) form.set('expiresAt', prepared.expiresAt)
     if (prepared.fireHazard) {
@@ -106,7 +109,13 @@ export class HttpDocumentsApi implements DocumentsApi {
       form.set('fireHazardT', prepared.fireHazard.t)
     }
     for (const item of prepared.files) {
-      const field = item.role === 'brand' ? 'brandFile' : item.role === 'materials' ? 'materialsFile' : 'file'
+      const field = item.role === 'brand'
+        ? 'brandFile'
+        : item.role === 'materials'
+          ? 'materialsFile'
+          : item.role === 'constructions'
+            ? 'constructionsFile'
+            : 'file'
       form.set(field, item.file, item.file.name)
       form.set(item.role === 'document' ? 'pageCount' : `${item.role}PageCount`, String(item.pageCount))
     }

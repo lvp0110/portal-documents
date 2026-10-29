@@ -88,5 +88,6 @@ export async function deleteDocument(id: string): Promise<void> {
   fileStore.delete(id)
   fileStore.delete(fileKey(id, 'brand'))
   fileStore.delete(fileKey(id, 'materials'))
+  fileStore.delete(fileKey(id, 'constructions'))
   await transactionDone(transaction)
 }

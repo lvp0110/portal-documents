@@ -1,13 +1,12 @@
 import { useMemo } from 'react'
-import { hasActiveFacets, matchesDocument } from '../lib/filters'
+import { facetValues, hasActiveFacets, matchesDocument, type FacetKey } from '../lib/filters'
 import { EMPTY_FILTERS, type Catalogs, type DocumentFilters, type DocumentMeta } from '../types'
-
-type FacetKey = 'brands' | 'materials' | 'documentTypes'
 
 const GROUPS: { key: FacetKey; title: string; catalog: keyof Catalogs }[] = [
   { key: 'documentTypes', title: 'Тип документа', catalog: 'documentTypes' },
   { key: 'brands', title: 'Бренды', catalog: 'brands' },
   { key: 'materials', title: 'Материалы', catalog: 'materials' },
+  { key: 'constructions', title: 'Конструкции', catalog: 'constructions' },
 ]
 
 type FilterPanelProps = {
@@ -22,15 +21,14 @@ export function FilterPanel({ catalogs, documents, filters, onChange }: FilterPa
     const next: Record<FacetKey, Map<string, number>> = {
       brands: new Map(),
       materials: new Map(),
+      constructions: new Map(),
       documentTypes: new Map(),
     }
 
     for (const group of GROUPS) {
       for (const document of documents) {
         if (!matchesDocument(document, filters, group.key)) continue
-        const values = group.key === 'materials'
-          ? document.materials
-          : [group.key === 'brands' ? document.brand : document.documentType]
+        const values = facetValues(document, group.key)
         for (const value of values) {
           if (!value) continue
           next[group.key].set(value, (next[group.key].get(value) ?? 0) + 1)

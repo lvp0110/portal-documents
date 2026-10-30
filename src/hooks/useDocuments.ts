@@ -48,7 +48,12 @@ export function useDocuments() {
   )
 
   const selected = documents.find((document) => document.id === selectedId) ?? null
-  const selectedHidden = Boolean(selected && !filtered.some((document) => document.id === selected.id))
+
+  useEffect(() => {
+    if (!selectedId) return
+    if (filtered.some((document) => document.id === selectedId)) return
+    setSelectedId(null)
+  }, [filtered, selectedId])
 
   const remember = (created: DocumentMeta) => {
     const next = [created, ...documentsRef.current.filter((document) => document.id !== created.id)]
@@ -128,7 +133,6 @@ export function useDocuments() {
     filters,
     setFilters,
     selected,
-    selectedHidden,
     select: setSelectedId,
     loading,
     uploading,

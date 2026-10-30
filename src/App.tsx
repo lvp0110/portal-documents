@@ -65,7 +65,6 @@ export default function App() {
         />
         <DocumentViewer
           document={library.selected}
-          hiddenByFilters={library.selectedHidden}
           downloading={library.downloadingId === library.selected?.id}
           onOpenFile={library.openFile}
           onDownload={(document, file) => void library.download(document, file)}

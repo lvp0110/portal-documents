@@ -13,7 +13,6 @@ function fileRoleLabel(role: FileRole): string {
 
 type DocumentViewerProps = {
   document: DocumentMeta | null
-  hiddenByFilters: boolean
   downloading: boolean
   onOpenFile: (id: string, role: FileRole) => Promise<Blob>
   onDownload: (document: DocumentMeta, file: DocumentMeta['files'][number]) => void
@@ -22,7 +21,6 @@ type DocumentViewerProps = {
 
 export function DocumentViewer({
   document,
-  hiddenByFilters,
   downloading,
   onOpenFile,
   onDownload,
@@ -87,7 +85,6 @@ export function DocumentViewer({
             {formatDate(document.uploadedAt)}
             {(activeFile?.pageCount ?? 0) > 0 ? ` · ${activeFile?.pageCount} стр.` : ''}
           </p>
-          {hiddenByFilters && <p className="viewer-hint">Документ не попадает в текущий список.</p>}
         </div>
         <div className="viewer-actions">
           <button

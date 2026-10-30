@@ -419,14 +419,11 @@ button { cursor: pointer; }
   line-height: 1.15;
 }
 
-.viewer-bar p,
-.viewer-hint {
+.viewer-bar p {
   margin: 6px 0 0;
   color: var(--muted);
   font-size: 13px;
 }
-
-.viewer-hint { color: var(--accent-dark); }
 
 .viewer-actions {
   display: flex;

@@ -118,9 +118,8 @@ export function FilterPanel({ catalogs, documents, filters, onChange }: FilterPa
 
   return (
     <aside className="filters">
-      <div className="filters-head">
-        <h2>Фильтры</h2>
-        {hasActiveFacets(filters) && (
+      {hasActiveFacets(filters) && (
+        <div className="filters-head">
           <button
             type="button"
             className="text-button"
@@ -128,8 +127,8 @@ export function FilterPanel({ catalogs, documents, filters, onChange }: FilterPa
           >
             Сбросить
           </button>
-        )}
-      </div>
+        </div>
+      )}
       <section className={mode === 'documents' ? 'filter-group has-divider' : 'filter-group'}>
         <div className="filter-switch" role="tablist" aria-label="Раздел фильтра">
           <button

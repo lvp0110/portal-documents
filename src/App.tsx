@@ -35,7 +35,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <AppHeader mode={library.mode} onUpload={() => setUploadOpen(true)} />
+      <AppHeader onUpload={() => setUploadOpen(true)} />
       {library.error && (
         <div className="banner" role="alert">
           <span>{library.error}</span>

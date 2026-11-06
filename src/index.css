@@ -1,8 +1,6 @@
 :root {
   color-scheme: light;
-  --bg: #e7e0d4;
   --paper: #fbf7f1;
-  --paper-2: #f3eee6;
   --ink: #211c17;
   --muted: #6f675e;
   --line: #ddd4c6;
@@ -18,7 +16,6 @@
   --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
   font-family: var(--sans);
   color: var(--ink);
-  background: var(--bg);
 }
 
 * { box-sizing: border-box; }
@@ -62,8 +59,7 @@ button { cursor: pointer; }
   justify-content: space-between;
   gap: 16px;
   padding: 14px 22px;
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
+  background: var(--accent);
 }
 
 .brand {
@@ -88,13 +84,14 @@ button { cursor: pointer; }
 .brand small { display: block; }
 
 .brand strong {
+  color: white;
   font-size: 16px;
   letter-spacing: -0.02em;
 }
 
 .brand small {
   margin-top: 2px;
-  color: var(--muted);
+  color: white;
   font-size: 12px;
 }
 
@@ -102,15 +99,6 @@ button { cursor: pointer; }
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.storage-badge {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #efe4d4;
-  color: #6a4b32;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .button {
@@ -125,6 +113,7 @@ button { cursor: pointer; }
 
 .button-primary {
   background: var(--accent);
+  border-color: white;
   color: white;
 }
 
@@ -173,10 +162,6 @@ button { cursor: pointer; }
 .filters {
   color-scheme: dark;
   background-color: var(--sidebar);
-  background-image: url('/filters-bg.jpg');
-  background-repeat: no-repeat;
-  background-position: right center;
-  background-size: cover;
   color: var(--sidebar-ink);
   overflow: auto;
   padding: 22px 16px 32px;
@@ -185,17 +170,14 @@ button { cursor: pointer; }
 .filters-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0 8px;
 }
 
-.filters h2,
 .filter-group h3,
 .viewer h2,
 .empty-state h2,
 .list-pane h2 { margin: 0; }
-
-.filters h2 { font-size: 18px; }
 
 .text-button {
   border: 0;
@@ -240,6 +222,10 @@ button { cursor: pointer; }
   letter-spacing: 0.08em;
   line-height: inherit;
   text-transform: uppercase;
+}
+
+.filter-switch-button.is-active {
+  font-size: 14px;
 }
 
 .filter-switch-button:not(.is-active) {
@@ -319,8 +305,8 @@ button { cursor: pointer; }
 }
 
 .list-pane {
-  background: var(--paper-2);
-  border-right: 1px solid var(--line);
+  background: #dde6e6;
+  border-right: 1px solid #5a87813b;
   min-height: 0;
   overflow: auto;
 }
@@ -359,7 +345,7 @@ button { cursor: pointer; }
   display: grid;
   gap: 8px;
   padding: 16px;
-  background: rgba(243, 238, 230, 0.94);
+  background: #dde6e6;
   backdrop-filter: blur(8px);
 }
 
@@ -419,7 +405,7 @@ button { cursor: pointer; }
 
 .doc-card.is-selected {
   background: white;
-  border-color: #f0d7c6;
+  border-color: var(--accent);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 

@@ -20,7 +20,7 @@ export function AppHeader({ mode, onUpload }: AppHeaderProps) {
           </svg>
         </span>
         <span>
-          <strong>Портал документов</strong>
+          <strong>Документы портала</strong>
           <small>Просмотр оригинала и скачивание</small>
         </span>
       </div>

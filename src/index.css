@@ -221,6 +221,62 @@ button { cursor: pointer; }
   text-transform: uppercase;
 }
 
+.filter-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  margin: 0 8px 8px;
+}
+
+.filter-switch-button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sidebar-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: inherit;
+  text-transform: uppercase;
+}
+
+.filter-switch-button:not(.is-active) {
+  opacity: 0.45;
+}
+
+.filter-switch-button:focus-visible {
+  outline: 2px solid #5a8781cc;
+  outline-offset: 3px;
+}
+
+.filter-search {
+  display: block;
+  margin: 0 8px 8px;
+}
+
+.filter-search input {
+  width: 100%;
+  color-scheme: light;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 11px 12px;
+  outline: none;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.filter-search input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.filter-search input:focus { border-color: #5a8781cc; }
+
 .filter-group ul {
   list-style: none;
   margin: 0;

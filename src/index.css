@@ -98,7 +98,38 @@ button { cursor: pointer; }
 .topbar-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+}
+
+.source-switch {
+  display: flex;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.source-switch button {
+  border: 0;
+  background: transparent;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 8px;
+}
+
+.source-switch button.is-active {
+  background: white;
+  color: var(--accent-dark);
+}
+
+a.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .button {
@@ -184,6 +215,13 @@ button { cursor: pointer; }
 .viewer h2,
 .empty-state h2,
 .list-pane h2 { margin: 0; }
+
+.filter-note {
+  margin: 8px;
+  color: #1f4a46;
+  font-size: 13px;
+  font-weight: 700;
+}
 
 .text-button {
   border: 0;
@@ -549,6 +587,67 @@ button { cursor: pointer; }
 }
 
 .pdf-frame { width: 100%; }
+
+.pdf-embed {
+  width: 100%;
+  height: min(78vh, 920px);
+  border: 0;
+  background: white;
+  box-shadow: var(--shadow);
+}
+
+.field-list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.field-list div {
+  display: grid;
+  gap: 2px;
+}
+
+.field-list dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.field-list dd {
+  margin: 0;
+}
+
+.field-list dd.is-pre {
+  white-space: pre-wrap;
+}
+
+.file-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.file-switch button {
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.file-switch button.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.load-more {
+  padding: 0 12px 24px;
+}
 
 .pdf-status {
   margin: 0 0 12px;

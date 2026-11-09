@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createDocumentsApi } from '../api/documentsApi'
+import { LocalDocumentsApi } from '../api/localDocumentsApi'
 import { catalogsFromDocuments } from '../catalogs'
 import { buildSamplePdf } from '../lib/samplePdf'
 import { downloadBlob } from '../lib/download'
@@ -8,7 +8,7 @@ import { matchesDocument } from '../lib/filters'
 import { EMPTY_FILTERS, type Catalogs, type DocumentFile, type DocumentFilters, type DocumentMeta, type FileRole, type UploadDocumentInput } from '../types'
 
 export function useDocuments() {
-  const api = useMemo(() => createDocumentsApi(), [])
+  const api = useMemo(() => new LocalDocumentsApi(), [])
   const [documents, setDocuments] = useState<DocumentMeta[]>([])
   const [catalogs, setCatalogs] = useState<Catalogs>(() => catalogsFromDocuments([]))
   const [filters, setFilters] = useState<DocumentFilters>(EMPTY_FILTERS)
@@ -77,6 +77,7 @@ export function useDocuments() {
     setSampleBusy(true)
     setError(null)
     try {
+      const sample = buildSamplePdf()
       remember(await api.upload({
         title: 'Knauf Moisture Board',
         brand: 'Knauf',
@@ -85,8 +86,8 @@ export function useDocuments() {
         documentType: 'Технический паспорт',
         expiresAt: null,
         fireHazard: null,
-        brandFile: null,
-        materialsFile: buildSamplePdf(),
+        brandFile: sample,
+        materialsFile: sample,
         constructionsFile: null,
         documentFile: null,
       }))

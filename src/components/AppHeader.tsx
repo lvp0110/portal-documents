@@ -1,8 +1,12 @@
+import type { DataSource } from '../source'
+
 type AppHeaderProps = {
+  source: DataSource
+  onSourceChange: (source: DataSource) => void
   onUpload: () => void
 }
 
-export function AppHeader({ onUpload }: AppHeaderProps) {
+export function AppHeader({ source, onSourceChange, onUpload }: AppHeaderProps) {
   return (
     <header className="topbar">
       <div className="brand">
@@ -20,13 +24,37 @@ export function AppHeader({ onUpload }: AppHeaderProps) {
         </span>
         <span>
           <strong>Документы портала</strong>
-          <small>Просмотр оригинала и скачивание</small>
+          <small>{source === 'portal' ? 'Опубликованные документы' : 'Локальные файлы'}</small>
         </span>
       </div>
       <div className="topbar-actions">
-        <button type="button" className="button button-primary" onClick={onUpload} data-testid="upload-open">
-          Загрузить PDF
-        </button>
+        <div className="source-switch" role="tablist" aria-label="Источник документов">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={source === 'portal'}
+            className={source === 'portal' ? 'is-active' : undefined}
+            onClick={() => onSourceChange('portal')}
+            data-testid="source-portal"
+          >
+            Портал
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={source === 'local'}
+            className={source === 'local' ? 'is-active' : undefined}
+            onClick={() => onSourceChange('local')}
+            data-testid="source-local"
+          >
+            Локальные
+          </button>
+        </div>
+        {source === 'local' && (
+          <button type="button" className="button button-primary" onClick={onUpload} data-testid="upload-open">
+            Загрузить PDF
+          </button>
+        )}
       </div>
     </header>
   )

@@ -1,0 +1,124 @@
+name: Prod deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      rev:
+        description: "Ревизия для deploy (по умолчанию SHA текущего запуска)"
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portal-documents-prod-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_REV_OVERRIDE: ${{ github.event.inputs.rev }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Validate frontend
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Write deploy configuration
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_JUMP_HOST: ${{ secrets.DEPLOY_JUMP_HOST }}
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+          DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
+        run: |
+          : "${DEPLOY_HOST:?DEPLOY_HOST secret is required}"
+          : "${DEPLOY_JUMP_HOST:?DEPLOY_JUMP_HOST secret is required}"
+          : "${DEPLOY_DIR:?DEPLOY_DIR secret is required}"
+          : "${DEPLOY_DOMAIN:?DEPLOY_DOMAIN secret is required}"
+          REV="${DEPLOY_REV_OVERRIDE:-$GITHUB_SHA}"
+          cat > deploy/.env.deploy <<EOF
+          DEPLOY_HOST=$DEPLOY_HOST
+          DEPLOY_JUMP_HOST=$DEPLOY_JUMP_HOST
+          DEPLOY_DIR=$DEPLOY_DIR
+          DEPLOY_DOMAIN=$DEPLOY_DOMAIN
+          DEPLOY_REMOTE=origin
+          DEPLOY_REV=$REV
+          EOF
+          chmod 600 deploy/.env.deploy
+
+      - name: Notify Telegram (start)
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then exit 0; fi
+          MSG=$'🚀 <b>Деплой portal-documents начат</b>\n'
+          MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
+          MSG+="<b>Author:</b> ${GITHUB_ACTOR}"$'\n'
+          MSG+="<a href=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\">Run #${GITHUB_RUN_NUMBER}</a>"
+          curl -fsS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="$TG_CHAT" -d parse_mode=HTML \
+            -d disable_web_page_preview=true --data-urlencode text="$MSG" > /dev/null
+
+      - name: Rollout frontend
+        run: bash deploy/deploy-frontend.sh
+
+      - name: Smoke test
+        run: bash deploy/deploy-status.sh
+
+      - name: Notify Telegram (success)
+        if: success()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
+        run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then exit 0; fi
+          MSG=$'✅ <b>Деплой portal-documents завершён</b>\n'
+          MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
+          MSG+="<a href=\"https://${DEPLOY_DOMAIN}\">https://${DEPLOY_DOMAIN}</a>"
+          curl -fsS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="$TG_CHAT" -d parse_mode=HTML \
+            -d disable_web_page_preview=true --data-urlencode text="$MSG" > /dev/null
+
+      - name: Notify Telegram (failure)
+        if: failure()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then exit 0; fi
+          MSG=$'❌ <b>Деплой portal-documents провален</b>\n'
+          MSG+="<b>Commit:</b> <code>${GITHUB_SHA:0:7}</code>"$'\n'
+          MSG+="<a href=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\">Логи Run #${GITHUB_RUN_NUMBER}</a>"
+          curl -sS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d chat_id="$TG_CHAT" -d parse_mode=HTML \
+            -d disable_web_page_preview=true --data-urlencode text="$MSG" > /dev/null

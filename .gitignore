@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Production deployment configuration and secrets
+.env.prod
+deploy/.env.deploy

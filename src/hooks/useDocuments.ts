@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createDocumentsApi } from '../api/documentsApi'
+import { LocalDocumentsApi } from '../api/localDocumentsApi'
 import { catalogsFromDocuments } from '../catalogs'
 import { buildSamplePdf } from '../lib/samplePdf'
 import { downloadBlob } from '../lib/download'
@@ -8,7 +8,7 @@ import { matchesDocument } from '../lib/filters'
 import { EMPTY_FILTERS, type Catalogs, type DocumentFile, type DocumentFilters, type DocumentMeta, type FileRole, type UploadDocumentInput } from '../types'
 
 export function useDocuments() {
-  const api = useMemo(() => createDocumentsApi(), [])
+  const api = useMemo(() => new LocalDocumentsApi(), [])
   const [documents, setDocuments] = useState<DocumentMeta[]>([])
   const [catalogs, setCatalogs] = useState<Catalogs>(() => catalogsFromDocuments([]))
   const [filters, setFilters] = useState<DocumentFilters>(EMPTY_FILTERS)
@@ -48,7 +48,12 @@ export function useDocuments() {
   )
 
   const selected = documents.find((document) => document.id === selectedId) ?? null
-  const selectedHidden = Boolean(selected && !filtered.some((document) => document.id === selected.id))
+
+  useEffect(() => {
+    if (!selectedId) return
+    if (filtered.some((document) => document.id === selectedId)) return
+    setSelectedId(null)
+  }, [filtered, selectedId])
 
   const remember = (created: DocumentMeta) => {
     const next = [created, ...documentsRef.current.filter((document) => document.id !== created.id)]
@@ -72,13 +77,19 @@ export function useDocuments() {
     setSampleBusy(true)
     setError(null)
     try {
+      const sample = buildSamplePdf()
       remember(await api.upload({
         title: 'Knauf Moisture Board',
         brand: 'Knauf',
         materials: ['Гипсокартон'],
+        constructions: [],
         documentType: 'Технический паспорт',
-        brandFile: null,
-        materialsFile: buildSamplePdf(),
+        expiresAt: null,
+        fireHazard: null,
+        brandFile: sample,
+        materialsFile: sample,
+        constructionsFile: null,
+        documentFile: null,
       }))
     } catch (sampleError) {
       setError(errorMessage(sampleError, 'Не удалось добавить пример.'))
@@ -123,7 +134,6 @@ export function useDocuments() {
     filters,
     setFilters,
     selected,
-    selectedHidden,
     select: setSelectedId,
     loading,
     uploading,

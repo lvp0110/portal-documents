@@ -1,27 +1,9 @@
-import { PORTAL_QUERY_KEYS, type PortalQuery } from './portalTypes'
-
-export type DataSource = 'portal' | 'local'
-
-const SOURCE_KEY = 'documents-portal.source'
+import type { PortalQuery } from './portalTypes'
 
 function intParam(params: URLSearchParams, key: string): number | null {
   const raw = params.get(key)
   if (!raw || !/^\d+$/.test(raw)) return null
   return Number(raw)
-}
-
-export function readSource(): DataSource {
-  const params = new URLSearchParams(window.location.search)
-  const param = params.get('source')
-  if (param === 'local' || param === 'portal') return param
-  if (PORTAL_QUERY_KEYS.some((key) => params.has(key))) return 'portal'
-  try {
-    const stored = localStorage.getItem(SOURCE_KEY)
-    if (stored === 'local' || stored === 'portal') return stored
-  } catch {
-    // Предпочтение необязательно, если хранилище недоступно.
-  }
-  return 'portal'
 }
 
 export function readPortalQuery(): PortalQuery {
@@ -36,28 +18,9 @@ export function readPortalQuery(): PortalQuery {
   }
 }
 
-export function rememberSource(source: DataSource) {
-  try {
-    localStorage.setItem(SOURCE_KEY, source)
-  } catch {
-    // Предпочтение необязательно, если хранилище недоступно.
-  }
-}
-
-export function writeSourceSearch(source: DataSource) {
-  const params = new URLSearchParams(window.location.search)
-  params.set('source', source)
-  if (source === 'local') {
-    for (const key of PORTAL_QUERY_KEYS) params.delete(key)
-  }
-  const query = params.toString()
-  const next = query ? `${window.location.pathname}?${query}` : window.location.pathname
-  window.history.replaceState(null, '', next)
-}
-
 export function writePortalSearch(query: PortalQuery) {
   const params = new URLSearchParams(window.location.search)
-  params.set('source', 'portal')
+  params.delete('source')
   const entries: [string, string | null][] = [
     ['global_category_id', query.globalCategoryId == null ? null : String(query.globalCategoryId)],
     ['brand_id', query.brandId == null ? null : String(query.brandId)],

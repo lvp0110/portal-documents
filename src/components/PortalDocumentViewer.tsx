@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { resolvePortalUrl } from '../api/portalApi'
-import { formatBytes, formatDate } from '../lib/format'
+import { errorMessage, formatBytes, formatDate } from '../lib/format'
 import { formatPortalField } from '../lib/portalFields'
 import type { PortalCatalogItem, PortalDocumentDetail, PortalDocumentSummary, PortalFile } from '../portalTypes'
+import { OriginalPdfView } from './OriginalPdfView'
 
 type PortalDocumentViewerProps = {
   summary: PortalDocumentSummary | null
@@ -14,6 +15,32 @@ type PortalDocumentViewerProps = {
 
 function isPdf(file: PortalFile): boolean {
   return file.mimeType === 'application/pdf' || file.filename.toLowerCase().endsWith('.pdf')
+}
+
+function PortalPdfPreview({ url }: { url: string }) {
+  const [file, setFile] = useState<Blob | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    setFile(null)
+    setError(null)
+    void fetch(url, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Не удалось открыть файл.')
+        const next = await response.blob()
+        if (!controller.signal.aborted) setFile(next)
+      })
+      .catch((loadError: unknown) => {
+        if (controller.signal.aborted) return
+        setError(errorMessage(loadError, 'Не удалось открыть файл.'))
+      })
+    return () => controller.abort()
+  }, [url])
+
+  if (error) return <p className="pdf-status">{error}</p>
+  if (!file) return <p className="pdf-status">Открываем оригинал…</p>
+  return <OriginalPdfView file={file} />
 }
 
 function CatalogChips({ items, className }: { items: PortalCatalogItem[]; className?: string }) {
@@ -139,13 +166,7 @@ export function PortalDocumentViewer({
         </div>
       )}
       {active && isPdf(active) && (
-        <iframe
-          key={active.id}
-          className="pdf-embed"
-          title={active.filename}
-          src={resolvePortalUrl(active.viewUrl)}
-          data-testid="portal-file-frame"
-        />
+        <PortalPdfPreview key={active.id} url={resolvePortalUrl(active.downloadUrl)} />
       )}
       {active && !isPdf(active) && (
         <p className="pdf-status">Этот формат откроется по ссылке «Открыть» или скачается отдельным файлом.</p>

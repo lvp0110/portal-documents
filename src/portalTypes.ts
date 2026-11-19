@@ -95,12 +95,3 @@ export type PortalDocumentsPage = {
   nextCursor?: string
   hasMore: boolean
 }
-
-export const PORTAL_QUERY_KEYS = [
-  'global_category_id',
-  'brand_id',
-  'model_id',
-  'material_id',
-  'doc_type',
-  'q',
-] as const

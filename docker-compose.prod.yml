@@ -3,8 +3,6 @@ services:
     build:
       context: .
       target: runtime
-      args:
-        VITE_DOCUMENTS_API_URL: ${VITE_DOCUMENTS_API_URL:-}
     image: portal-documents:latest
     container_name: portal-documents
     restart: unless-stopped

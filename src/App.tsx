@@ -67,6 +67,7 @@ export default function App() {
           key={portal.selectedId ?? 'none'}
           summary={portal.selected}
           detail={portal.detail}
+          filters={portal.filters}
           loading={portal.detailLoading}
           error={portal.detailError}
           status={portal.detailStatus}

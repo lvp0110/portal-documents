@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { resolvePortalUrl } from '../api/portalApi'
 import { errorMessage, formatBytes, formatDate } from '../lib/format'
 import { fieldChipLabels, isConstructionsField } from '../lib/portalFields'
-import type { PortalCatalogItem, PortalDocumentDetail, PortalDocumentSummary, PortalFile } from '../portalTypes'
+import type { PortalCatalogItem, PortalDocumentDetail, PortalDocumentSummary, PortalFile, PortalQuery } from '../portalTypes'
 import { OriginalPdfView } from './OriginalPdfView'
 
 type PortalDocumentViewerProps = {
   summary: PortalDocumentSummary | null
   detail: PortalDocumentDetail | null
+  filters: PortalQuery
   loading: boolean
   error: string | null
   status: number | null
@@ -43,16 +44,17 @@ function PortalPdfPreview({ url }: { url: string }) {
   return <OriginalPdfView file={file} />
 }
 
-function CatalogChips({ items, className }: { items: PortalCatalogItem[]; className?: string }) {
+function CatalogChips({ items, selectedId }: { items: PortalCatalogItem[]; selectedId: number | null }) {
   if (items.length === 0) return null
   return items.map((item) => (
-    <span className={className ? `chip ${className}` : 'chip'} key={item.id}>{item.name}</span>
+    <span className={item.id === selectedId ? 'chip chip-type' : 'chip'} key={item.id}>{item.name}</span>
   ))
 }
 
 export function PortalDocumentViewer({
   summary,
   detail,
+  filters,
   loading,
   error,
   status,
@@ -116,13 +118,15 @@ export function PortalDocumentViewer({
         </div>
       </header>
       <div className="chip-row">
-        <span className="chip chip-type">{(document ?? summary).documentType.name}</span>
+        <span className={filters.docType === (document ?? summary).documentType.code ? 'chip chip-type' : 'chip'}>
+          {(document ?? summary).documentType.name}
+        </span>
         {detail && (
           <>
-            <CatalogChips items={detail.catalog.globalCategories} />
-            <CatalogChips items={detail.catalog.brands} className="chip-brand" />
-            <CatalogChips items={detail.catalog.models} />
-            <CatalogChips items={detail.catalog.materials} className="chip-material" />
+            <CatalogChips items={detail.catalog.globalCategories} selectedId={filters.globalCategoryId} />
+            <CatalogChips items={detail.catalog.brands} selectedId={filters.brandId} />
+            <CatalogChips items={detail.catalog.models} selectedId={filters.modelId} />
+            <CatalogChips items={detail.catalog.materials} selectedId={filters.materialId} />
             {constructions.map((label, index) => (
               <span className="chip" key={`${label}-${index}`}>{label}</span>
             ))}

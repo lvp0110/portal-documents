@@ -561,10 +561,10 @@ a.button {
 
 .chip {
   padding: 5px 10px;
-  border: 1px solid transparent;
+  border: 1px solid white;
   border-radius: 999px;
-  background: #efe4d4;
-  color: #5c4634;
+  background: var(--accent);
+  color: white;
   font-size: 12px;
   font-weight: 700;
 }
@@ -572,17 +572,6 @@ a.button {
 .chip-type {
   background: transparent;
   border-color: var(--accent);
-  color: var(--accent-dark);
-}
-
-.chip-brand {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-
-.chip-material {
-  background: color-mix(in srgb, var(--accent) 50%, white);
   color: var(--accent-dark);
 }
 

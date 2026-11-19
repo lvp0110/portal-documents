@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { resolvePortalUrl } from '../api/portalApi'
 import { errorMessage, formatBytes, formatDate } from '../lib/format'
-import { formatPortalField } from '../lib/portalFields'
+import { fieldChipLabels, isConstructionsField } from '../lib/portalFields'
 import type { PortalCatalogItem, PortalDocumentDetail, PortalDocumentSummary, PortalFile } from '../portalTypes'
 import { OriginalPdfView } from './OriginalPdfView'
 
@@ -85,22 +85,14 @@ export function PortalDocumentViewer({
     )
   }
 
-  const fields = (detail?.fields ?? [])
-    .map((field) => ({ field, view: formatPortalField(field) }))
-    .filter((item) => item.view.text.trim())
+  const constructions = (detail?.fields ?? [])
+    .filter(isConstructionsField)
+    .flatMap(fieldChipLabels)
 
   return (
     <section className="viewer" aria-label="Просмотр документа">
       <header className="viewer-bar">
-        <div>
-          <h3>{document?.title ?? summary.title}</h3>
-          <p>
-            {active ? active.filename : 'Нет файла'}
-            {active ? ` · ${formatBytes(active.size)}` : ''}
-            {' · '}
-            {formatDate((document ?? summary).publishedAt)}
-          </p>
-        </div>
+        <h3>{document?.title ?? summary.title}</h3>
         <div className="viewer-actions">
           {active && (
             <a
@@ -131,22 +123,15 @@ export function PortalDocumentViewer({
             <CatalogChips items={detail.catalog.brands} className="chip-brand" />
             <CatalogChips items={detail.catalog.models} />
             <CatalogChips items={detail.catalog.materials} className="chip-material" />
+            {constructions.map((label, index) => (
+              <span className="chip" key={`${label}-${index}`}>{label}</span>
+            ))}
           </>
         )}
         {(document ?? summary).verifiedAt && (
           <span className="chip">Проверен {formatDate((document ?? summary).verifiedAt ?? '')}</span>
         )}
       </div>
-      {fields.length > 0 && (
-        <dl className="field-list">
-          {fields.map(({ field, view }) => (
-            <div key={field.code}>
-              <dt>{field.name}</dt>
-              <dd className={view.preserveBreaks ? 'is-pre' : undefined}>{view.text}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
       {loading && !detail && <p className="pdf-status">Открываем карточку…</p>}
       {error && <p className="pdf-status">{error}</p>}
       {files.length > 1 && (

@@ -1,12 +1,4 @@
-import type { DataSource } from '../source'
-
-type AppHeaderProps = {
-  source: DataSource
-  onSourceChange: (source: DataSource) => void
-  onUpload: () => void
-}
-
-export function AppHeader({ source, onSourceChange, onUpload }: AppHeaderProps) {
+export function AppHeader() {
   return (
     <header className="topbar">
       <div className="brand">
@@ -24,37 +16,8 @@ export function AppHeader({ source, onSourceChange, onUpload }: AppHeaderProps) 
         </span>
         <span>
           <strong>Документы портала</strong>
-          <small>{source === 'portal' ? 'Опубликованные документы' : 'Локальные файлы'}</small>
+          <small>Опубликованные документы</small>
         </span>
-      </div>
-      <div className="topbar-actions">
-        <div className="source-switch" role="tablist" aria-label="Источник документов">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={source === 'portal'}
-            className={source === 'portal' ? 'is-active' : undefined}
-            onClick={() => onSourceChange('portal')}
-            data-testid="source-portal"
-          >
-            Портал
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={source === 'local'}
-            className={source === 'local' ? 'is-active' : undefined}
-            onClick={() => onSourceChange('local')}
-            data-testid="source-local"
-          >
-            Локальные
-          </button>
-        </div>
-        {source === 'local' && (
-          <button type="button" className="button button-primary" onClick={onUpload} data-testid="upload-open">
-            Загрузить PDF
-          </button>
-        )}
       </div>
     </header>
   )

@@ -51,7 +51,7 @@ const EMPTY_PAGE: PageState = {
   error: null,
 }
 
-export function usePortalLibrary(enabled: boolean) {
+export function usePortalLibrary() {
   const [filters, setFilters] = useState<PortalQuery>(readPortalQuery)
   const [query, setQuery] = useState(() => readPortalQuery().q)
   const [options, setOptions] = useState<PortalFilters | null>(null)
@@ -67,7 +67,7 @@ export function usePortalLibrary(enabled: boolean) {
   const hasMore = pageReady && page.hasMore && Boolean(page.nextCursor)
   const nextCursor = pageReady ? page.nextCursor : undefined
   const error = pageReady ? page.error : null
-  const loading = enabled && !pageReady
+  const loading = !pageReady
   const selectedId = selection.key === filterKey ? selection.id : null
 
   useEffect(() => {
@@ -79,12 +79,10 @@ export function usePortalLibrary(enabled: boolean) {
   }, [query])
 
   useEffect(() => {
-    if (!enabled) return
     writePortalSearch(filters)
-  }, [enabled, filters])
+  }, [filters])
 
   useEffect(() => {
-    if (!enabled) return
     const controller = new AbortController()
     const request = ++generation.current
     const key = filterKey
@@ -118,10 +116,10 @@ export function usePortalLibrary(enabled: boolean) {
     })()
 
     return () => controller.abort()
-  }, [enabled, filters, filterKey, reloadToken])
+  }, [filters, filterKey, reloadToken])
 
   useEffect(() => {
-    if (!enabled || !selectedId) return
+    if (!selectedId) return
     const controller = new AbortController()
     const groupId = selectedId
     void fetchPortalDocument(groupId, controller.signal)
@@ -139,11 +137,11 @@ export function usePortalLibrary(enabled: boolean) {
         })
       })
     return () => controller.abort()
-  }, [enabled, selectedId])
+  }, [selectedId])
 
   const loadMore = async () => {
     const cursor = nextCursor
-    if (!enabled || !cursor || loading || loadingMore) return
+    if (!cursor || loading || loadingMore) return
     const request = generation.current
     const key = filterKey
     const queryAtStart = filters

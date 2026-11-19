@@ -7,11 +7,7 @@ RUN npm ci
 
 COPY . .
 
-# Если внешний API включён, браузер обращается к нему через frontend
-# same-origin proxy `/api`. Пустое значение сохраняет IndexedDB-режим проекта.
-ARG VITE_DOCUMENTS_API_URL=
-ENV VITE_DOCUMENTS_API_URL=$VITE_DOCUMENTS_API_URL
-
+# Браузер запрашивает документы портала через same-origin proxy `/api`.
 RUN npm run build
 
 FROM node:22-alpine AS runtime

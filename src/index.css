@@ -588,14 +588,6 @@ a.button {
 
 .pdf-frame { width: 100%; }
 
-.pdf-embed {
-  width: 100%;
-  height: min(78vh, 920px);
-  border: 0;
-  background: white;
-  box-shadow: var(--shadow);
-}
-
 .field-list {
   display: grid;
   gap: 12px;

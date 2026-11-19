@@ -14,9 +14,8 @@ Frontend-контейнер публикуется только на прива�
 домен, wildcard TLS и маршрут до `prodfront.mcs.local:3009` настраиваются в
 `gatewaytodo` после выбора домена.
 
-По умолчанию сохраняется исходный IndexedDB-режим проекта. Для внешнего API в
-`.env.prod` задаются одновременно `VITE_DOCUMENTS_API_URL=/api` и внутренний
-`DOCUMENTS_API_URL`; после этого frontend необходимо пересобрать.
+Frontend показывает только документы портала. Запросы к `/api` `server.js`
+проксирует на `DOCUMENTS_API_URL` из `.env.prod`.
 
 ## Первый запуск тестовой ветки
 

@@ -39,10 +39,6 @@ function calendarDate(value: string): Date | null {
   return date
 }
 
-export function isIsoDate(value: string): boolean {
-  return calendarDate(value) !== null
-}
-
 export function formatDate(iso: string): string {
   const date = calendarDate(iso) ?? new Date(iso)
   if (Number.isNaN(date.getTime())) return iso
@@ -56,8 +52,4 @@ export function formatDate(iso: string): string {
 export function errorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && error.message.trim()) return error.message
   return fallback
-}
-
-export function isPdfFile(file: File): boolean {
-  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
 }

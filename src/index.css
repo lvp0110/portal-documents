@@ -588,33 +588,6 @@ a.button {
 
 .pdf-frame { width: 100%; }
 
-.field-list {
-  display: grid;
-  gap: 12px;
-  margin: 0 0 16px;
-}
-
-.field-list div {
-  display: grid;
-  gap: 2px;
-}
-
-.field-list dt {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.field-list dd {
-  margin: 0;
-}
-
-.field-list dd.is-pre {
-  white-space: pre-wrap;
-}
-
 .file-switch {
   display: flex;
   flex-wrap: wrap;

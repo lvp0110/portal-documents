@@ -1,4 +1,3 @@
-import { formatDate } from './format'
 import type { PortalField } from '../portalTypes'
 
 function named(value: unknown): string | null {
@@ -13,27 +12,20 @@ function plain(value: unknown): string {
   return ''
 }
 
-export function formatPortalField(field: PortalField): { text: string; preserveBreaks: boolean } {
-  const { type, value } = field
-  if (type === 'text' || type === 'text_area' || type === 'quarter') {
-    return { text: plain(value), preserveBreaks: type === 'text_area' }
+function itemLabel(value: unknown): string {
+  return named(value) ?? plain(value).trim()
+}
+
+export function isConstructionsField(field: PortalField): boolean {
+  const name = field.name.trim().toLocaleLowerCase('ru')
+  const code = field.code.trim().toLowerCase()
+  return name === 'конструкции' || code === 'constructions' || code === 'construction'
+}
+
+export function fieldChipLabels(field: PortalField): string[] {
+  if (Array.isArray(field.value)) {
+    return field.value.map(itemLabel).filter(Boolean)
   }
-  if (type === 'number') return { text: plain(value), preserveBreaks: false }
-  if (type === 'date') {
-    return { text: typeof value === 'string' ? formatDate(value) : '', preserveBreaks: false }
-  }
-  if (type === 'list') return { text: named(value) ?? '', preserveBreaks: false }
-  if (type === 'multiple_list' && Array.isArray(value)) {
-    return {
-      text: value.map((item) => named(item) ?? plain(item)).filter(Boolean).join(', '),
-      preserveBreaks: false,
-    }
-  }
-  if (Array.isArray(value)) {
-    return {
-      text: value.map((item) => named(item) ?? plain(item)).filter(Boolean).join(', '),
-      preserveBreaks: false,
-    }
-  }
-  return { text: named(value) ?? plain(value), preserveBreaks: false }
+  const label = itemLabel(field.value)
+  return label ? [label] : []
 }

@@ -73,6 +73,7 @@ export default function App() {
             catalogs={library.catalogs}
             documents={library.documents}
             filters={library.filters}
+            localFilters={library.localFilters}
             onChange={library.setFilters}
           />
         )}
@@ -131,7 +132,11 @@ export default function App() {
       <UploadDialog
         open={uploadOpen}
         catalogs={library.catalogs}
+        localFilters={library.localFilters}
         busy={library.uploading}
+        onAddDocumentType={library.addDocumentType}
+        onAddFilter={library.addFilter}
+        onAddFilterValue={library.addFilterValue}
         onClose={() => {
           if (!library.uploading) setUploadOpen(false)
         }}

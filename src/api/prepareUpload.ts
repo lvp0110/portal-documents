@@ -1,6 +1,6 @@
 import { isCertificateType, isEngineeringAlbumType, MAX_PDF_BYTES, normalizeFireHazard } from '../catalogs'
 import { isIsoDate, isPdfFile } from '../lib/format'
-import type { FileRole, FireHazardIndicators, UploadDocumentInput } from '../types'
+import type { DocumentAttribute, FileRole, FireHazardIndicators, UploadDocumentInput } from '../types'
 
 export type PreparedFile = {
   role: FileRole
@@ -14,6 +14,7 @@ export type PreparedUpload = {
   materials: string[]
   constructions: string[]
   documentType: string
+  attributes: DocumentAttribute[]
   expiresAt: string | null
   fireHazard: FireHazardIndicators | null
   files: PreparedFile[]
@@ -29,6 +30,19 @@ async function prepareFile(file: File, role: FileRole, readPageCount: (data: Arr
   }
 }
 
+function normalizeAttributes(value: DocumentAttribute[] | undefined): DocumentAttribute[] {
+  if (!value) return []
+  const attributes: DocumentAttribute[] = []
+  for (const item of value) {
+    const filterId = item.filterId.trim()
+    const name = item.name.trim()
+    const values = [...new Set(item.values.map((entry) => entry.trim()).filter(Boolean))]
+    if (!filterId || !name || values.length === 0) continue
+    attributes.push({ filterId, name, values })
+  }
+  return attributes
+}
+
 export async function prepareUpload(input: UploadDocumentInput): Promise<PreparedUpload> {
   const brand = input.brand.trim()
   const materials = [...new Set(input.materials.map((item) => item.trim()).filter(Boolean))]
@@ -40,7 +54,8 @@ export async function prepareUpload(input: UploadDocumentInput): Promise<Prepare
   const fireHazard = certificate ? normalizeFireHazard(input.fireHazard) : null
   if (certificate && !expiresAt) throw new Error('Укажите срок действия.')
   if (expiresAt && !isIsoDate(expiresAt)) throw new Error('Укажите корректный срок действия.')
-  const withoutTargets = isEngineeringAlbumType(documentType) && !brand && materials.length === 0 && constructions.length === 0
+  const withoutTargets = input.attributes != null
+    || (isEngineeringAlbumType(documentType) && !brand && materials.length === 0 && constructions.length === 0)
   if (!withoutTargets && !brand && materials.length === 0 && constructions.length === 0) {
     throw new Error('Выберите бренд, материалы или конструкции.')
   }
@@ -71,6 +86,7 @@ export async function prepareUpload(input: UploadDocumentInput): Promise<Prepare
     materials,
     constructions,
     documentType,
+    attributes: normalizeAttributes(input.attributes),
     expiresAt: expiresAt || null,
     fireHazard,
     files,

@@ -1,6 +1,6 @@
 import { BASE_MATERIALS } from './baseMaterials'
 import { isIsoDate } from './lib/format'
-import type { Catalogs, DocumentFile, DocumentMeta, FireHazardIndicators } from './types'
+import type { Catalogs, DocumentAttribute, DocumentFile, DocumentMeta, FireHazardIndicators } from './types'
 
 export type { BaseMaterial } from './baseMaterials'
 export { BASE_MATERIALS } from './baseMaterials'
@@ -228,6 +228,22 @@ export function readConstructions(value: unknown): string[] {
   return uniqueStrings(source)
 }
 
+export function readAttributes(value: unknown): DocumentAttribute[] {
+  if (!value || typeof value !== 'object') return []
+  const source = (value as { attributes?: unknown }).attributes
+  if (!Array.isArray(source)) return []
+  const attributes: DocumentAttribute[] = []
+  for (const item of source) {
+    if (!item || typeof item !== 'object') continue
+    const record = item as { filterId?: unknown; name?: unknown; values?: unknown }
+    const filterId = typeof record.filterId === 'string' ? record.filterId.trim() : ''
+    const name = typeof record.name === 'string' ? record.name.trim() : ''
+    if (!filterId || !name) continue
+    attributes.push({ filterId, name, values: uniqueStrings(Array.isArray(record.values) ? record.values : []) })
+  }
+  return attributes
+}
+
 export function mergeOptions(defaults: string[], values: string[]): string[] {
   const unique = new Set<string>()
   for (const value of [...defaults, ...values]) {
@@ -237,7 +253,7 @@ export function mergeOptions(defaults: string[], values: string[]): string[] {
   return [...unique].sort((a, b) => a.localeCompare(b, 'ru'))
 }
 
-export function catalogsFromDocuments(documents: DocumentMeta[]): Catalogs {
+export function catalogsFromDocuments(documents: DocumentMeta[], extraTypes: string[] = []): Catalogs {
   return {
     brands: mergeOptions(BASE_BRANDS, documents.map((document) => document.brand)),
     materials: mergeOptions(baseMaterialNames(), documents.flatMap((document) => document.materials)),
@@ -245,9 +261,9 @@ export function catalogsFromDocuments(documents: DocumentMeta[]): Catalogs {
       BASE_CONSTRUCTIONS,
       documents.flatMap((document) => document.constructions ?? []),
     ),
-    documentTypes: mergeOptions(
-      BASE_DOCUMENT_TYPES,
-      documents.map((document) => document.documentType),
-    ),
+    documentTypes: mergeOptions(BASE_DOCUMENT_TYPES, [
+      ...documents.map((document) => document.documentType),
+      ...extraTypes,
+    ]),
   }
 }

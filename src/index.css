@@ -250,6 +250,42 @@ a.button {
   text-transform: uppercase;
 }
 
+.filter-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.filter-title h3 { flex: 1; min-width: 0; }
+
+.filter-add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 8px 0;
+}
+
+.filter-add input {
+  flex: 1;
+  min-width: 0;
+  color-scheme: light;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 11px 12px;
+  outline: none;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.filter-add input::placeholder { color: var(--muted); opacity: 1; }
+.filter-add input:focus { border-color: #5a8781cc; }
+
+.filter-add .text-button:disabled { opacity: 0.45; }
+
 .filter-switch {
   display: flex;
   flex-wrap: wrap;
@@ -702,6 +738,22 @@ a.button {
   gap: 6px;
   font-size: 13px;
   font-weight: 700;
+}
+
+.add-type-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.add-type-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-type-row .button {
+  flex: none;
+  white-space: nowrap;
 }
 
 .upload-dialog.menu-open { overflow: visible; }

@@ -8,6 +8,7 @@ type OptionMenuProps = {
   selected: string[]
   multiple?: boolean
   allowCustom?: boolean
+  customVerb?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onChange: (selected: string[]) => void
@@ -21,6 +22,7 @@ export function OptionMenu({
   selected,
   multiple = false,
   allowCustom = false,
+  customVerb = 'Использовать',
   open,
   onOpenChange,
   onChange,
@@ -141,7 +143,7 @@ export function OptionMenu({
               />
               {customValue && (
                 <button type="button" className="option-custom" onClick={() => choose(customValue)}>
-                  Использовать «{customValue}»
+                  {customVerb} «{customValue}»
                 </button>
               )}
               <ul role="group" aria-labelledby={labelId}>

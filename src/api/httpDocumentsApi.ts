@@ -33,6 +33,7 @@ export function parseDocument(value: unknown): DocumentMeta {
     materials: readMaterials(record),
     constructions: readConstructions(record),
     documentType: asString(record, 'documentType'),
+    attributes: [],
     expiresAt: readExpiresAt(record),
     fireHazard: readFireHazard(record),
     uploadedAt: asString(record, 'uploadedAt'),

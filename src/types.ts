@@ -16,6 +16,18 @@ export type FireHazardIndicators = {
   t: string
 }
 
+export type DocumentAttribute = {
+  filterId: string
+  name: string
+  values: string[]
+}
+
+export type LocalFilter = {
+  id: string
+  name: string
+  values: string[]
+}
+
 export type DocumentMeta = {
   id: string
   title: string
@@ -26,6 +38,7 @@ export type DocumentMeta = {
   materials: string[]
   constructions: string[]
   documentType: string
+  attributes: DocumentAttribute[]
   expiresAt: string | null
   fireHazard: FireHazardIndicators | null
   uploadedAt: string
@@ -34,10 +47,8 @@ export type DocumentMeta = {
 }
 
 export type DocumentFilters = {
-  brands: string[]
-  materials: string[]
-  constructions: string[]
   documentTypes: string[]
+  attributes: Record<string, string[]>
   query: string
 }
 
@@ -54,6 +65,7 @@ export type UploadDocumentInput = {
   materials: string[]
   constructions: string[]
   documentType: string
+  attributes?: DocumentAttribute[]
   expiresAt: string | null
   fireHazard: FireHazardIndicators | null
   brandFile: File | null
@@ -63,9 +75,7 @@ export type UploadDocumentInput = {
 }
 
 export const EMPTY_FILTERS: DocumentFilters = {
-  brands: [],
-  materials: [],
-  constructions: [],
   documentTypes: [],
+  attributes: {},
   query: '',
 }

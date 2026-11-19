@@ -116,6 +116,11 @@ export function DocumentViewer({
       </header>
       <div className="chip-row">
         <span className="chip chip-type">{document.documentType}</span>
+        {(document.attributes ?? []).flatMap((attribute) =>
+          attribute.values.map((value) => (
+            <span className="chip" key={`${attribute.filterId}:${value}`}>{attribute.name}: {value}</span>
+          )),
+        )}
         {document.brand && <span className="chip chip-brand">{document.brand}</span>}
         {document.materials.map((material) => (
           <span className="chip chip-material" key={material}>{material}</span>

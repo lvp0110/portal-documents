@@ -99,7 +99,7 @@ export function DocumentList({
       {!collapsed && (libraryEmpty ? (
         <div className="empty-state">
           <h2>Пока нет документов</h2>
-          <p>Перетащите PDF в форму. Файл сохранится для выбранного бренда, материалов или конструкций.</p>
+          <p>Перетащите PDF в форму. Файл сохранится с выбранным типом документа.</p>
           <div className="empty-actions">
             <button type="button" className="button button-primary" onClick={onUpload}>
               Загрузить PDF

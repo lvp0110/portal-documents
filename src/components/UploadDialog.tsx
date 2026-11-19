@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type DragEvent, type FormEvent } from 'react'
-import type { Catalogs, FireHazardIndicators, UploadDocumentInput } from '../types'
+import type { Catalogs, DocumentAttribute, FireHazardIndicators, LocalFilter, UploadDocumentInput } from '../types'
 import { errorMessage, isIsoDate, isPdfFile } from '../lib/format'
-import { isCertificateType, isEngineeringAlbumType, materialsForBrand, MAX_PDF_BYTES, normalizeFireHazard } from '../catalogs'
+import { isCertificateType, MAX_PDF_BYTES, normalizeFireHazard } from '../catalogs'
 import { OptionMenu } from './OptionMenu'
 
 const EMPTY_FIRE_HAZARD: FireHazardIndicators = { g: '', v: '', rp: '', d: '', t: '' }
@@ -14,40 +14,51 @@ const FIRE_HAZARD_FIELDS = [
   { key: 't', placeholder: 'Т' },
 ] as const satisfies ReadonlyArray<{ key: keyof FireHazardIndicators; placeholder: string }>
 
-type OpenMenu = 'brand' | 'materials' | 'constructions' | 'type' | null
+type OpenMenu = string | null
 
-function fileTarget(brand: string, materials: string[], constructions: string[], documentType: string): string {
-  const parts: string[] = []
-  if (brand.trim()) parts.push('бренду')
-  if (materials.length > 0) parts.push('материалам')
-  if (constructions.length > 0) parts.push('конструкциям')
-  if (parts.length === 0) {
-    if (isEngineeringAlbumType(documentType)) return 'Файл сохранится без бренда, материалов и конструкций.'
-    return 'Выберите бренд, материалы или конструкции — файл добавится к выбранному.'
-  }
-  if (parts.length === 1) return `Файл добавится к ${parts[0]}.`
-  const last = parts[parts.length - 1]
-  return `Файл добавится к ${parts.slice(0, -1).join(', к ')} и к ${last}.`
+function fileTarget(filters: LocalFilter[], selected: Record<string, string[]>): string {
+  const names = filters
+    .filter((filter) => (selected[filter.id] ?? []).length > 0)
+    .map((filter) => filter.name)
+  if (names.length === 0) return 'Файл сохранится с выбранным типом документа.'
+  if (names.length === 1) return `Файл сохранится с фильтром «${names[0]}».`
+  return `Файл сохранится с фильтрами: ${names.join(', ')}.`
 }
 
 type UploadDialogProps = {
   open: boolean
   catalogs: Catalogs
+  localFilters: LocalFilter[]
   busy: boolean
   onClose: () => void
+  onAddDocumentType: (name: string) => Promise<string>
+  onAddFilter: (name: string) => Promise<LocalFilter>
+  onAddFilterValue: (id: string, value: string) => Promise<string>
   onSubmit: (input: UploadDocumentInput) => Promise<void>
 }
 
-export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: UploadDialogProps) {
+export function UploadDialog({
+  open,
+  catalogs,
+  localFilters,
+  busy,
+  onClose,
+  onAddDocumentType,
+  onAddFilter,
+  onAddFilterValue,
+  onSubmit,
+}: UploadDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const titleId = useId()
 
   const [title, setTitle] = useState('')
-  const [brand, setBrand] = useState('')
-  const [materials, setMaterials] = useState<string[]>([])
-  const [constructions, setConstructions] = useState<string[]>([])
+  const [selections, setSelections] = useState<Record<string, string[]>>({})
   const [documentType, setDocumentType] = useState('')
+  const [newType, setNewType] = useState('')
+  const [addingType, setAddingType] = useState(false)
+  const [newFilter, setNewFilter] = useState('')
+  const [addingFilter, setAddingFilter] = useState(false)
   const [expiresAt, setExpiresAt] = useState('')
   const [fireHazard, setFireHazard] = useState<FireHazardIndicators>(EMPTY_FIRE_HAZARD)
   const hazardLabelId = useId()
@@ -61,10 +72,12 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
     setWasOpen(open)
     if (open) {
       setTitle('')
-      setBrand('')
-      setMaterials([])
-      setConstructions([])
+      setSelections({})
       setDocumentType('')
+      setNewType('')
+      setAddingType(false)
+      setNewFilter('')
+      setAddingFilter(false)
       setExpiresAt('')
       setFireHazard(EMPTY_FIRE_HAZARD)
       setFile(null)
@@ -80,6 +93,70 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
     if (open && !dialog.open) dialog.showModal()
     if (!open && dialog.open) dialog.close()
   }, [open])
+
+  const applyType = (type: string) => {
+    setDocumentType(type)
+    if (!isCertificateType(type)) {
+      setExpiresAt('')
+      setFireHazard(EMPTY_FIRE_HAZARD)
+    }
+    setFormError(null)
+  }
+
+  const chooseType = async (raw: string) => {
+    const trimmed = raw.trim()
+    if (!trimmed) {
+      setFormError('Укажите название типа.')
+      return
+    }
+    const known = catalogs.documentTypes.find((item) => item.toLowerCase() === trimmed.toLowerCase())
+    if (known) {
+      applyType(known)
+      setNewType('')
+      return
+    }
+    setAddingType(true)
+    try {
+      applyType(await onAddDocumentType(trimmed))
+      setNewType('')
+    } catch (error) {
+      setFormError(errorMessage(error, 'Не удалось добавить тип.'))
+    } finally {
+      setAddingType(false)
+    }
+  }
+
+  const applyFilterValues = async (filter: LocalFilter, next: string[]) => {
+    const resolved: string[] = []
+    for (const value of next) {
+      const known = filter.values.find((item) => item.toLowerCase() === value.trim().toLowerCase())
+      if (known) {
+        if (!resolved.includes(known)) resolved.push(known)
+        continue
+      }
+      resolved.push(await onAddFilterValue(filter.id, value))
+    }
+    setSelections((current) => ({ ...current, [filter.id]: resolved }))
+    setFormError(null)
+  }
+
+  const addFilter = async () => {
+    const name = newFilter.trim()
+    if (!name) {
+      setFormError('Укажите название фильтра.')
+      return
+    }
+    setAddingFilter(true)
+    try {
+      await onAddFilter(name)
+      setNewFilter('')
+      setFormError(null)
+    } catch (error) {
+      setFormError(errorMessage(error, 'Не удалось добавить фильтр.'))
+    } finally {
+      setAddingFilter(false)
+    }
+  }
 
   const acceptFile = (next: File | null) => {
     if (!next) {
@@ -107,20 +184,12 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    const hasBrand = Boolean(brand.trim())
-    const hasMaterials = materials.length > 0
-    const hasConstructions = constructions.length > 0
     if (!file) {
       setFormError('Добавьте PDF.')
       return
     }
     if (!documentType.trim()) {
       setFormError('Укажите тип документа.')
-      return
-    }
-    const withoutTargets = isEngineeringAlbumType(documentType) && !hasBrand && !hasMaterials && !hasConstructions
-    if (!hasBrand && !hasMaterials && !hasConstructions && !withoutTargets) {
-      setFormError('Выберите бренд, материалы или конструкции.')
       return
     }
     const certificate = isCertificateType(documentType)
@@ -134,20 +203,25 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
       setFormError('Укажите корректный срок действия.')
       return
     }
+    const attributes: DocumentAttribute[] = localFilters.flatMap((filter) => {
+      const values = selections[filter.id] ?? []
+      return values.length > 0 ? [{ filterId: filter.id, name: filter.name, values }] : []
+    })
     setFormError(null)
     try {
       await onSubmit({
         title,
-        brand,
-        materials,
-        constructions,
+        brand: '',
+        materials: [],
+        constructions: [],
         documentType,
+        attributes,
         expiresAt: expiresAtValue || null,
         fireHazard: fireHazardValue,
-        brandFile: hasBrand ? file : null,
-        materialsFile: hasMaterials ? file : null,
-        constructionsFile: hasConstructions ? file : null,
-        documentFile: withoutTargets ? file : null,
+        brandFile: null,
+        materialsFile: null,
+        constructionsFile: null,
+        documentFile: file,
       })
     } catch (error) {
       setFormError(errorMessage(error, 'Не удалось сохранить документ.'))
@@ -168,7 +242,7 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
       <form onSubmit={(event) => void submit(event)}>
         <header>
           <h2 id={titleId}>Новый документ</h2>
-          <p>Один PDF. Куда он сохранится, зависит от выбранных бренда, материалов и конструкций.</p>
+          <p>Один PDF. Его можно связать с добавленными фильтрами.</p>
         </header>
 
         <OptionMenu
@@ -178,18 +252,38 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
           options={catalogs.documentTypes}
           selected={documentType ? [documentType] : []}
           allowCustom
+          customVerb="Добавить тип"
           open={openMenu === 'type'}
           onOpenChange={(next) => setOpenMenu(next ? 'type' : null)}
           onChange={(next) => {
-            const type = next[0] ?? ''
-            setDocumentType(type)
-            if (!isCertificateType(type)) {
-              setExpiresAt('')
-              setFireHazard(EMPTY_FIRE_HAZARD)
-            }
-            setFormError(null)
+            void chooseType(next[0] ?? '')
           }}
         />
+        <div className="add-type-row">
+          <input
+            value={newType}
+            placeholder="Новый тип"
+            aria-label="Новый тип документа"
+            disabled={busy || addingType}
+            onChange={(event) => {
+              setNewType(event.target.value)
+              setFormError(null)
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter') return
+              event.preventDefault()
+              void chooseType(newType)
+            }}
+          />
+          <button
+            type="button"
+            className="button button-secondary"
+            disabled={busy || addingType || !newType.trim()}
+            onClick={() => void chooseType(newType)}
+          >
+            {addingType ? 'Добавляем…' : 'Добавить тип'}
+          </button>
+        </div>
         {isCertificateType(documentType) && (
           <label>
             Срок действия
@@ -245,7 +339,7 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
           onDrop={onDrop}
         >
           <strong>{file ? file.name : 'Перетащите PDF сюда'}</strong>
-          <span>{fileTarget(brand, materials, constructions, documentType)}</span>
+          <span>{fileTarget(localFilters, selections)}</span>
           <input
             ref={fileInputRef}
             type="file"
@@ -273,50 +367,51 @@ export function UploadDialog({ open, catalogs, busy, onClose, onSubmit }: Upload
           Название
           <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Если пусто, возьмём имя файла" />
         </label>
-        <OptionMenu
-          label="Бренд"
-          placeholder="Выберите бренд"
-          searchPlaceholder="Найти бренд"
-          options={catalogs.brands}
-          selected={brand ? [brand] : []}
-          allowCustom
-          open={openMenu === 'brand'}
-          onOpenChange={(next) => setOpenMenu(next ? 'brand' : null)}
-          onChange={(next) => {
-            const value = next[0] ?? ''
-            setBrand(value)
-            setMaterials((current) => materialsForBrand(value, current))
-            setFormError(null)
-          }}
-        />
-        <OptionMenu
-          label="Материалы"
-          placeholder="Выберите материалы"
-          searchPlaceholder="Найти материал"
-          options={materialsForBrand(brand, catalogs.materials)}
-          selected={materials}
-          multiple
-          open={openMenu === 'materials'}
-          onOpenChange={(next) => setOpenMenu(next ? 'materials' : null)}
-          onChange={(next) => {
-            setMaterials(next)
-            setFormError(null)
-          }}
-        />
-        <OptionMenu
-          label="Конструкции"
-          placeholder="Выберите конструкции"
-          searchPlaceholder="Найти конструкцию"
-          options={catalogs.constructions}
-          selected={constructions}
-          multiple
-          open={openMenu === 'constructions'}
-          onOpenChange={(next) => setOpenMenu(next ? 'constructions' : null)}
-          onChange={(next) => {
-            setConstructions(next)
-            setFormError(null)
-          }}
-        />
+        <div className="add-type-row">
+          <input
+            value={newFilter}
+            placeholder="Новый фильтр"
+            aria-label="Новый фильтр"
+            disabled={busy || addingFilter}
+            onChange={(event) => {
+              setNewFilter(event.target.value)
+              setFormError(null)
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter') return
+              event.preventDefault()
+              void addFilter()
+            }}
+          />
+          <button
+            type="button"
+            className="button button-secondary"
+            disabled={busy || addingFilter || !newFilter.trim()}
+            onClick={() => void addFilter()}
+          >
+            {addingFilter ? 'Добавляем…' : 'Добавить фильтр'}
+          </button>
+        </div>
+        {localFilters.map((filter) => (
+          <OptionMenu
+            key={filter.id}
+            label={filter.name}
+            placeholder={`Выберите ${filter.name.toLowerCase()}`}
+            searchPlaceholder={`Найти ${filter.name.toLowerCase()}`}
+            options={filter.values}
+            selected={selections[filter.id] ?? []}
+            multiple
+            allowCustom
+            customVerb="Добавить"
+            open={openMenu === filter.id}
+            onOpenChange={(next) => setOpenMenu(next ? filter.id : null)}
+            onChange={(next) => {
+              void applyFilterValues(filter, next).catch((error: unknown) => {
+                setFormError(errorMessage(error, 'Не удалось добавить значение.'))
+              })
+            }}
+          />
+        ))}
         {formError && <p className="form-error" role="alert">{formError}</p>}
 
         <footer>
